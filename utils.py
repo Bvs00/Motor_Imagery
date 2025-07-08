@@ -204,9 +204,12 @@ def fix_seeds(seed=42):
 
 ################################################  PLOT ##############################################################
 def plot_losses(list_loss_train, list_loss_validation, fold=0, path='Results/'):
+    min_index = list_loss_validation.index(min(list_loss_validation))
+    min_value = list_loss_validation[min_index]
     plt.figure(figsize=(10, 6))
     plt.plot(range(len(list_loss_train)), list_loss_train, 'bo-', label='Train Loss')
     plt.plot(range(len(list_loss_validation)), list_loss_validation, 'ro-', label='Validation Loss')
+    plt.plot(min_index, min_value, 'gs', label='Minimum Validation Loss')
     plt.xlabel('Numero di Epoche')
     plt.ylabel('Loss')
     plt.title(f'Train Loss e Validation Loss per Epoca in {fold} fold')
@@ -381,9 +384,9 @@ def train_model(model, fold_performance, train_loader, val_loader, fold, class_w
         else:
             early_stopping_counter += 1
 
-        print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
-             f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
-             f"Early Stopping Counter: {early_stopping_counter}/{patience}")
+        # print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
+        #      f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
+        #      f"Early Stopping Counter: {early_stopping_counter}/{patience}")
 
         if early_stopping_counter >= patience:
             print(f"Early stopping at epoch {epoch + 1}")

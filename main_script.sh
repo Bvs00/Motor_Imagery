@@ -36,10 +36,10 @@ for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.0002 \
           --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/train_2b_4_40_$bandpass.npz" \
+          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/train_2b_$bandpass.npz" \
           --patience 1000
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_4_40_$bandpass.npz" \
+          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_$bandpass.npz" \
           --seed "$seed"
 done
 

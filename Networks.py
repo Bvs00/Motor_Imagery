@@ -1347,18 +1347,17 @@ class PositioinalEncoding_CTNet(nn.Module):
         
 # CTNet       
 class CTNet(nn.Module):
-    def __init__(self, heads=4, 
-                 emb_size=40,
+    def __init__(self, heads=2, 
+                 emb_size=16,
                  depth=6, 
                  database_type='A', 
-                 eeg1_f1 = 20,
+                 eeg1_f1 = 8,
                  eeg1_kernel_size = 64,
                  eeg1_D = 2,
                  eeg1_pooling_size1 = 8,
                  eeg1_pooling_size2 = 8,
-                 eeg1_dropout_rate = 0.3,
-                 eeg1_number_channel = 22,
-                 flatten_eeg1 = 600,
+                 eeg1_dropout_rate = 0.25,
+                 flatten_eeg1 = 240,
                  num_classes = 2,
                  channels = 3,
                  model_name_prefix="CTNet",
