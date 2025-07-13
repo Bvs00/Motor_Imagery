@@ -8,9 +8,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-def _test():
-    pass
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -57,7 +54,7 @@ if __name__ == '__main__':
         plot_confusion_matrix(confusion_matrix, ['Background', 'Left Hand', 'Right Hand'] if confusion_matrix.shape[0]==3 else ['Left Hand', 'Right Hand'], best_fold,
                             f'{saved_path}/{args.name_model}_seed{args.seed}_test', balanced_accuracy)
 
-        if args.paradigm == 'Single':
+        if args.paradigm == 'Single' or args.paradigm == 'LOSO':
             with open(f'{saved_path}/{args.name_model}_seed{args.seed}_test_results.json', 'w') as f:
                 json.dump({'average_loss': avg_loss, 'f1_score': f1, 'accuracy': accuracy, 'balanced_accuracy': balanced_accuracy}, f, indent=4)
 

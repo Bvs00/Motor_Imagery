@@ -57,7 +57,8 @@ augmentation_factory_methods = {
 
 available_paradigm = [
     'Single', 
-    'Cross'
+    'Cross',
+    'LOSO'
 ]
 
 ################################## NORMALIZATIONs #############################################################
