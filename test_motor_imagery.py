@@ -11,7 +11,7 @@ import torch.nn as nn
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_set', type=str, default='/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_4_40.npz')
+    parser.add_argument('--test_set', type=str, default='/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_full.npz')
     parser.add_argument("--name_model", type=str, default='EEGConformer', help="Name of model that use", choices=available_network)
     parser.add_argument('--saved_path', type=str, default='Results_EEGConformer')
     parser.add_argument('--device', type=str, default='cuda:0' if torch.cuda.is_available() else'cpu')
