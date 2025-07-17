@@ -1173,7 +1173,7 @@ class SSCL_CSD(nn.Module):
 
 ################################ CTNET #################################################
 class PatchEmbeddingCNN(nn.Module):
-    def __init__(self, f1=16, kernel_size=64, D=2, pooling_size1=8, pooling_size2=8, dropout_rate=0.3, number_channel=22, emb_size=40):
+    def __init__(self, f1=8, kernel_size=64, D=2, pooling_size1=8, pooling_size2=8, dropout_rate=0.25, number_channel=22, emb_size=16):
         super().__init__()
         f2 = D*f1
         self.cnn_module = nn.Sequential(
@@ -1400,7 +1400,7 @@ class CTNet(nn.Module):
     
 ################ PATCHEMBEDDING ######################
 class PatchEmbeddingNet(nn.Module):
-    def __init__(self, f1=16, kernel_size=64, D=2, pooling_size1=8, pooling_size2=8, dropout_rate=0.3, channels=3, num_classes=2, model_name_prefix="PatchEmbeddingNet", samples=1000):
+    def __init__(self, f1=8, kernel_size=64, D=2, pooling_size1=8, pooling_size2=8, dropout_rate=0.25, channels=3, num_classes=2, model_name_prefix="PatchEmbeddingNet", samples=1000):
         super().__init__()
         f2 = D*f1
         self.channels = channels
