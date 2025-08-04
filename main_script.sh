@@ -21,6 +21,10 @@ elif [ "$PRIME" == "2" ]; then
   primes=(402 701 1001 1013 1207 1031 1339 1449 1527 1613 1743 1841 3222 5421)
 elif [ "$PRIME" == "3" ]; then
   primes=(42 71 101 113 127 131 139 149 157 163 173 181 322 521 402 701 1001 1013 1207 1031 1339 1449 1527 1613 1743 1841 3222 5421)
+elif [ "$PRIME" == "4" ]; then
+  primes=(131 139 157 163 173 181 322 521)
+elif [ "$PRIME" == "5" ]; then
+  primes=(149)
 fi
 
 
@@ -35,11 +39,11 @@ paradigm="$PARADIGM"
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
-          --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/train_2b_$bandpass.npz" \
+          --augmentation "$aug" --num_workers 15 --normalization "$normalization" --paradigm "$paradigm" \
+          --train_set "/home/inbit/Scrivania/Datasets/2B/train_2b_$bandpass.npz" \
           --patience 300 --batch_size 72
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_$bandpass.npz" \
+          --test_set "/home/inbit/Scrivania/Datasets/2B/test_2b_$bandpass.npz" \
           --seed "$seed"
 done
 
