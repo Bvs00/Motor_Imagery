@@ -66,5 +66,10 @@ def segmentation_reconstruction(data, labels, num_segments=8, num_augmentations=
     idx_shuffled = torch.randperm(full_data.size(0))
     return full_data[idx_shuffled], full_labels[idx_shuffled]
 
+
+def reverse_channels_segmentation_reconstruction(data, labels, num_segments=8, num_augmentations=3):
+    data_aug, labels_aug = reverse_channels(data, labels)
+    final_data_aug, final_labels_aug = segmentation_reconstruction(data_aug, labels_aug, num_segments, num_augmentations)
+    return final_data_aug, final_labels_aug
     
     

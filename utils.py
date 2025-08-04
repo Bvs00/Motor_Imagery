@@ -11,7 +11,7 @@ from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced
 from Networks import LMDA, EEGNet, EEGConformer, EEGEncoder, EEGConformerPositional, EEGNetDilated, \
     CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet
 import seaborn as sns
-from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction
+from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
 
 
 available_network = [
@@ -48,13 +48,15 @@ available_augmentation = [
     'None',
     'chr_augmentation',
     'reverse_channels',
-    'segmentation_reconstruction'
+    'segmentation_reconstruction',
+    'reverse_segmentation'
 ]
 
 augmentation_factory_methods = {
     'chr_augmentation': chr_augmentation,
     'reverse_channels': reverse_channels,
-    'segmentation_reconstruction': segmentation_reconstruction
+    'segmentation_reconstruction': segmentation_reconstruction,
+    'reverse_segmentation': reverse_channels_segmentation_reconstruction
 }
 
 available_paradigm = [
