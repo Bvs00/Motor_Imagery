@@ -6,8 +6,8 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
 #SBATCH --nodelist=gnode05
-#SBATCH --job-name=eegnet_cross
-#SBATCH --output=eegnet_cross.log
+#SBATCH --job-name=patch_cross
+#SBATCH --output=patch_cross.log
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
