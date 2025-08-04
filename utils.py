@@ -262,9 +262,9 @@ def plot_training_complete(fold_performance, name, folds):
 ########################################## CREATE DATALOADER #############################################
 def create_data_loader(train_tensor, val_tensor, batch_size, num_workers):
     train_loader = DataLoader(train_tensor, batch_size=batch_size, shuffle=True, num_workers=num_workers,
-                              prefetch_factor=3, persistent_workers=True, pin_memory=True)
+                              prefetch_factor=3, persistent_workers=True)
     val_loader = DataLoader(val_tensor, batch_size=batch_size, shuffle=False, num_workers=num_workers,
-                            prefetch_factor=3, persistent_workers=True, pin_memory=True)
+                            prefetch_factor=3, persistent_workers=True)
     return train_loader, val_loader
 
 #################################### FIND BEST FOLD ############################################
