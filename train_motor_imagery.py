@@ -113,18 +113,17 @@ if __name__ == '__main__':
 
     elif args.paradigm=='LOSO':
         for patient in range(len(data_train_tensors)):
-            if args.seed == 149 and patient < 4:
-                data = data_train_tensors.copy()
-                labels = labels_train_tensors.copy()
-                data.pop(patient), labels.pop(patient)
-                data, labels = torch.cat(data), torch.cat(labels)
-                print(f"Train {args.name_model}_seed{args.seed} for Patient {patient+1}")
-                if not os.path.exists(args.saved_path+f'/Patient_{patient+1}'):
-                    os.makedirs(args.saved_path+f'/Patient_{patient+1}')
-                saved_path = f'{args.saved_path}/Patient_{patient+1}'
-                fold_performance = []
-                
-                _train(data, labels, saved_path)
+            data = data_train_tensors.copy()
+            labels = labels_train_tensors.copy()
+            data.pop(patient), labels.pop(patient)
+            data, labels = torch.cat(data), torch.cat(labels)
+            print(f"Train {args.name_model}_seed{args.seed} for Patient {patient+1}")
+            if not os.path.exists(args.saved_path+f'/Patient_{patient+1}'):
+                os.makedirs(args.saved_path+f'/Patient_{patient+1}')
+            saved_path = f'{args.saved_path}/Patient_{patient+1}'
+            fold_performance = []
+            
+            _train(data, labels, saved_path)
         
     print("FINISHED Training")
     
