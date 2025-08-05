@@ -68,7 +68,7 @@ def segmentation_reconstruction(data, labels, num_segments=8, num_augmentations=
             new_data[:, :, :, start:end] = data_for_label[random_sample[:, seg_idx], :, :, start:end]
         
         full_data = torch.cat([full_data, new_data], dim=0)
-        full_labels = torch.cat([full_labels, label_tmp.repeat(num_samples_for_classes)], dim=0)
+        full_labels = torch.cat([full_labels, label.repeat(num_samples_for_classes)], dim=0)
     idx_shuffled = torch.randperm(full_data.size(0))
     return full_data[idx_shuffled], full_labels[idx_shuffled]
 
