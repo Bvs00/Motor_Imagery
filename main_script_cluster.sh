@@ -59,5 +59,5 @@ for seed in "${primes[@]}"; do
           --seed "$seed"
 done
 
-$PYTHON create_excel_motor_imagery.py --network "$network" --path "$saved_path" --device "$TORCH_DEVICE"
+$PYTHON create_excel_motor_imagery.py --network "$network" --path "$saved_path"
 echo 'ok'
