@@ -345,7 +345,7 @@ def validate(model, val_loader, criterion, device):
 
 
 def train_model(model, fold_performance, train_loader, val_loader, fold, class_weight,
-                lr, epochs, device, augmentation, patience):
+                lr, epochs, device, augmentation, patience, checkpoint_flag):
     
     optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.5, 0.999))
     criterion = nn.CrossEntropyLoss(weight=class_weight)
@@ -357,8 +357,29 @@ def train_model(model, fold_performance, train_loader, val_loader, fold, class_w
     list_loss_train = []
     list_loss_validation = []
     early_stopping_counter = 0
-
-    for epoch in range(epochs):
+    start_epoch = 0
+    skip_fold_flag = False
+    
+    if checkpoint_flag and os.path.exists(f"{model.model_name_prefix}_checkpoint_fold{fold+1}.pth"):
+        checkpoint = torch.load(f"{model.model_name_prefix}_checkpoint_fold{fold+1}.pth", weights_only=False)
+        
+        start_epoch = checkpoint['epoch']
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        best_val_loss = checkpoint['best_val_loss']
+        best_val_f1 = checkpoint['best_val_f1']
+        best_val_conf_matrix = checkpoint['best_val_conf_matrix']
+        best_val_accuracy = checkpoint['best_val_accuracy']
+        best_val_balanced_accuracy = checkpoint['best_val_balanced_accuracy']
+        early_stopping_counter = checkpoint['early_stopping_counter']
+        list_loss_validation = checkpoint['list_loss_validation']
+        list_loss_train = checkpoint['list_loss_train']
+        model.load_state_dict(checkpoint['model_state_dict'])
+        skip_fold_flag = checkpoint['finish']
+    
+    for epoch in range(start_epoch, epochs, 1):
+        if skip_fold_flag:
+            print('Skip Fold')
+            break
         model.train()
         running_loss = 0.0
 
@@ -389,19 +410,36 @@ def train_model(model, fold_performance, train_loader, val_loader, fold, class_w
         else:
             early_stopping_counter += 1
 
-        # print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
-        #      f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
-        #      f"Early Stopping Counter: {early_stopping_counter}/{patience}")
+        print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
+             f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
+             f"Early Stopping Counter: {early_stopping_counter}/{patience}")
+        
+        checkpoint = {
+            'epoch': epoch+1,
+            'optimizer': optimizer.state_dict(),
+            'best_val_loss': best_val_loss,
+            'best_val_f1': best_val_f1,
+            'best_val_conf_matrix': best_val_conf_matrix,
+            'best_val_accuracy': best_val_accuracy,
+            'best_val_balanced_accuracy': best_val_balanced_accuracy,
+            'early_stopping_counter': early_stopping_counter,
+            'list_loss_validation': list_loss_validation,
+            'list_loss_train': list_loss_train,
+            'model_state_dict': model.state_dict(),
+            'finish': True if (early_stopping_counter >= patience) or (epoch+1==epochs) else False
+        }
+        torch.save(checkpoint, f"{model.model_name_prefix}_checkpoint_fold{fold+1}.pth")
 
+        list_loss_validation.append(val_loss)
+        list_loss_train.append(running_loss / len(train_loader))
+        
+        # Save the loss values
+        plot_losses(list_loss_train, list_loss_validation, fold + 1, f"{model.model_name_prefix}")
+        
         if early_stopping_counter >= patience:
             print(f"Early stopping at epoch {epoch + 1}")
             break
 
-        list_loss_validation.append(val_loss)
-        list_loss_train.append(running_loss / len(train_loader))
-
-    # Save the loss values
-    plot_losses(list_loss_train, list_loss_validation, fold + 1, f"{model.model_name_prefix}")
     print("Min Train Loss: ", min(list_loss_train))
     print("Min Val Loss: ", min(list_loss_validation))
     fold_performance.append((best_val_loss, best_val_f1, best_val_conf_matrix, best_val_accuracy, best_val_balanced_accuracy))

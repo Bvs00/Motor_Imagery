@@ -48,7 +48,8 @@ def _train(data, labels, saved_path):
         class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
         print(f"Class weights for this fold: {class_weights}")
         train_model(model=model, fold_performance=fold_performance, train_loader=train_loader, val_loader=val_loader, fold=fold, lr=args.lr,
-                    class_weight=class_weights, epochs=args.epochs, device=args.device, augmentation=args.augmentation, patience=args.patience)
+                    class_weight=class_weights, epochs=args.epochs, device=args.device, augmentation=args.augmentation,
+                    patience=args.patience, checkpoint_flag=args.checkpoint_flag)
 
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_validation_log.txt', 'w') as f:
         pass
@@ -81,6 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--augmentation', type=str, choices=available_augmentation)
     parser.add_argument('--normalization', type=str, choices=available_normalization)
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
+    parser.add_argument('-checkpoint_flag', action='store_true', default=True)
     args = parser.parse_args()
     
     print(f"DEVICE: {args.device}")
