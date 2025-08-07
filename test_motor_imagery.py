@@ -1,4 +1,5 @@
 import sys
+import os
 from utils import create_tensors, find_minum_loss, validate, plot_confusion_matrix, \
     load_normalizations, available_paradigm, available_network, network_factory_methods
 import argparse
@@ -22,8 +23,17 @@ if __name__ == '__main__':
     data_test_tensors, labels_test_tensors = create_tensors(args.test_set)
     loss_list, f1_list, accuracy_list, balanced_accuracy_list, final_results = [], [], [], [], []
     
+    if args.paradigm=='LOSO':
+        dir_path, filename = os.path.split(args.test_set)
+        new_filename = filename.replace("test", "train")
+        train_set_path = os.path.join(dir_path, new_filename)
+        data_train_tensors, labels_train_tensors = create_tensors(train_set_path)
+    
     for patient in range(len(data_test_tensors)):
         data, labels = data_test_tensors[patient], labels_test_tensors[patient]
+        if args.paradigm=='LOSO':
+            data_train, labels_train = data_train_tensors[patient], labels_train_tensors[patient]
+            data, labels = torch.cat([data, data_train]), torch.cat([labels, labels_train])
         
         saved_path = args.saved_path if args.paradigm=='Cross' else f'{args.saved_path}/Patient_{patient + 1}'
         
