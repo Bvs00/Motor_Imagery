@@ -5,10 +5,10 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --nodelist=gnode09
-#SBATCH --job-name=ctnet_final
-#SBATCH --output=ctnet_final.log
-#SBATCH --dependency=80869
+#SBATCH --nodelist=gnode03
+#SBATCH --job-name=patch_loso_segrec
+#SBATCH --output=patch_loso_segrec.log
+#SBATCH --dependency=81128
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
@@ -29,7 +29,7 @@ echo "$PARADIGM"
 echo "$TORCH_DEVICE"
 
 if [ "$PRIME" == "1" ]; then
-  primes=(71 101 113 127 131 139 149 157 163 173 181 322 521)
+  primes=(42 71 101 113 127 131 139 149 157 163 173 181 322 521)
 elif [ "$PRIME" == "2" ]; then
   primes=(402 701 1001 1013 1207 1031 1339 1449 1527 1613 1743 1841 3222 5421)
 elif [ "$PRIME" == "3" ]; then
@@ -54,7 +54,7 @@ for seed in "${primes[@]}"; do
   $PYTHON -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
           --augmentation "$aug" --num_workers 32 --normalization "$normalization" --paradigm "$paradigm" \
           --train_set "/mnt/beegfs/sbove/2B/train_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
-          --patience 300 --batch_size 72
+          --patience 150 --batch_size 72
   $PYTHON -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
           --test_set "/mnt/beegfs/sbove/2B/test_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
           --seed "$seed"
