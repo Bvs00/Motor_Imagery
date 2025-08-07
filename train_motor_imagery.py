@@ -114,12 +114,28 @@ if __name__ == '__main__':
             _train(data, labels, saved_path)
 
     elif args.paradigm=='LOSO':
+        
+        dir_path, filename = os.path.split(args.train_set)
+        new_filename = filename.replace("train", "test")
+        test_set_path = os.path.join(dir_path, new_filename)
+        data_test_tensors, labels_test_tensors = create_tensors(test_set_path)
+        
         for patient in range(len(data_train_tensors)):
-            data = data_train_tensors.copy()
-            labels = labels_train_tensors.copy()
-            data.pop(patient), labels.pop(patient)
-            data, labels = torch.cat(data), torch.cat(labels)
+            # train data
+            data_train = data_train_tensors.copy()
+            labels_train = labels_train_tensors.copy()
+            data_train.pop(patient), labels_train.pop(patient)
+            data_train, labels_train = torch.cat(data_train), torch.cat(labels_train)
+            # test data
+            data_test = data_test_tensors.copy()
+            labels_test = labels_test_tensors.copy()
+            data_test.pop(patient), labels_test.pop(patient)
+            data_test, labels_test = torch.cat(data_test), torch.cat(labels_test)
+            # full data to train model
+            data, labels = torch.cat([data_train, data_test]), torch.cat([labels_train, labels_test])
+            
             print(f"Train {args.name_model}_seed{args.seed} for Patient {patient+1}")
+            
             if not os.path.exists(args.saved_path+f'/Patient_{patient+1}'):
                 os.makedirs(args.saved_path+f'/Patient_{patient+1}')
             saved_path = f'{args.saved_path}/Patient_{patient+1}'
