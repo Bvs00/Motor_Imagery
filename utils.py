@@ -410,9 +410,9 @@ def train_model(model, fold_performance, train_loader, val_loader, fold, class_w
         else:
             early_stopping_counter += 1
 
-        # print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
-        #      f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
-        #      f"Early Stopping Counter: {early_stopping_counter}/{patience}")
+        print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
+             f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
+             f"Early Stopping Counter: {early_stopping_counter}/{patience}")
         
         checkpoint = {
             'epoch': epoch+1,
