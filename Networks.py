@@ -1447,3 +1447,28 @@ class PatchEmbeddingNet(nn.Module):
         x = x.flatten(start_dim=1)
         x = self.classification(x)
         return x
+    
+
+########################################################################################
+######################################## MSVTNet #######################################
+########################################################################################
+
+class TSConv(nn.Sequential):
+    def __init__(self, nCh, F, C1, C2, D, P1, P2, Pc) -> None:
+        super().__init__(
+            nn.Conv2d(1, F, (1, C1), padding='same', bias=False),
+            nn.BatchNorm2d(F),
+            nn.Conv2d(F, F * D, (nCh, 1), groups=F, bias=False),
+            nn.BatchNorm2d(F * D),
+            nn.ELU(),
+            nn.AvgPool2d((1, P1)),
+            nn.Dropout(Pc),
+            nn.Conv2d(F * D, F * D, (1, C2), padding='same', groups=F * D, bias=False),
+            nn.BatchNorm2d(F * D),
+            nn.ELU(),
+            nn.AvgPool2d((1, P2)),
+            nn.Dropout(Pc)
+        )
+
+
+
