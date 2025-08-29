@@ -4,12 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import random
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced_accuracy_score
 from Networks import LMDA, EEGNet, EEGConformer, EEGEncoder, EEGConformerPositional, EEGNetDilated, \
-    CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet
+    CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet, MSVTNet
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
 
@@ -26,7 +27,8 @@ available_network = [
     'EEGNetConformer', 
     'EEGConformer_Wout_Attention', 
     'CTNet',
-    'PatchEmbeddingNet'
+    'PatchEmbeddingNet',
+    'MSVTNet'
 ]
 
 network_factory_methods = {
@@ -41,7 +43,8 @@ network_factory_methods = {
     'EEGNetConformer': EEGNetConformer, 
     'EEGConformer_Wout_Attention': EEGConformer_Wout_Attention,
     'CTNet': CTNet, 
-    'PatchEmbeddingNet': PatchEmbeddingNet
+    'PatchEmbeddingNet': PatchEmbeddingNet,
+    'MSVTNet': MSVTNet
 }
 
 available_augmentation = [
@@ -318,6 +321,20 @@ def find_max_f1(filename):
     return best_fold
 
 ################################# TRAIN AND VALIDATE ########################################
+class JointCrossEntoryLoss(nn.Module):
+    def __init__(self, lamd : float = 0.6) -> None:
+        super().__init__()
+        self.lamd = lamd
+
+    def forward(self, out, label):
+        end_out = out[0]
+        branch_out = out[1]
+        end_loss = F.nll_loss(end_out, label)
+        branch_loss = [F.nll_loss(out, label).unsqueeze(0) for out in branch_out]
+        branch_loss = torch.cat(branch_loss)
+        loss = self.lamd * end_loss + (1 - self.lamd) * torch.sum(branch_loss)
+        return loss
+
 
 def validate(model, val_loader, criterion, device):
     model.eval()
@@ -332,6 +349,8 @@ def validate(model, val_loader, criterion, device):
             val_loss += loss.detach().item()
 
             # Ottenere le predizioni
+            if isinstance(criterion, JointCrossEntoryLoss):
+                outputs=outputs[0]
             _, preds = torch.max(outputs, 1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels_batch.cpu().numpy())
@@ -344,11 +363,10 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, f1.tolist(), conf_matrix, accuracy, balanced_accuracy
 
 
-def train_model(model, fold_performance, train_loader, val_loader, fold, class_weight,
+def train_model(model, fold_performance, train_loader, val_loader, fold, criterion,
                 lr, epochs, device, augmentation, patience, checkpoint_flag):
     
     optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.5, 0.999))
-    criterion = nn.CrossEntropyLoss(weight=class_weight)
     best_val_loss = float('inf')
     best_val_f1 = 0.0
     best_val_conf_matrix = np.zeros(shape=(2, 2))
