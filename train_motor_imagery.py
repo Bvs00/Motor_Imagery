@@ -1,12 +1,13 @@
 from utils import train_model, plot_training_complete, normalize_subset, create_tensors, fix_seeds,\
     create_data_loader, saved_normalizations,\
     available_network, network_factory_methods, available_augmentation, available_normalization, \
-    normalization_factory_methods, available_paradigm
+    normalization_factory_methods, available_paradigm, JointCrossEntoryLoss
 import sys
 import argparse
 import json
 import numpy as np
 import torch
+import torch.nn as nn
 from sklearn.model_selection import KFold
 from torch.utils.data import TensorDataset, Subset
 import os
@@ -47,8 +48,12 @@ def _train(data, labels, saved_path):
         y_train = torch.stack([train_subset[i][1] for i in range(len(train_subset))]).numpy()
         class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
         print(f"Class weights for this fold: {class_weights}")
+        if args.name_model == 'MSVTNet':
+            criterion = JointCrossEntoryLoss()
+        else:
+            criterion = nn.CrossEntropyLoss(weight=class_weights)
         train_model(model=model, fold_performance=fold_performance, train_loader=train_loader, val_loader=val_loader, fold=fold, lr=args.lr,
-                    class_weight=class_weights, epochs=args.epochs, device=args.device, augmentation=args.augmentation,
+                    criterion=criterion, epochs=args.epochs, device=args.device, augmentation=args.augmentation,
                     patience=args.patience, checkpoint_flag=args.checkpoint_flag)
 
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_validation_log.txt', 'w') as f:
