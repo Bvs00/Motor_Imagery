@@ -57,7 +57,7 @@ if __name__ == '__main__':
         model.to(args.device)
         model.load_state_dict(torch.load(f'{saved_path}/{args.name_model}_seed{args.seed}_best_model_fold{best_fold}.pth'))
 
-        if args.name_model=='MSVTNet':
+        if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet':
             criterion = JointCrossEntoryLoss()
         else:
             criterion = nn.CrossEntropyLoss()
