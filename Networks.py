@@ -1584,3 +1584,139 @@ class MSVTNet(nn.Module):
             return x, bx
         else:
             return x
+
+
+#################### CSETNet ####################
+# SENet (Squeeze-and-Excitation Network) per l'attenzione sui canali
+class SENet(nn.Module):
+    def __init__(self, channels, reduction=2):
+        super(SENet, self).__init__()
+        self.global_avg_pool = nn.AdaptiveAvgPool2d(1)  # Squeeze
+        self.fc1 = nn.Linear(channels, channels // reduction)  # Riduzione dimensionale
+        self.fc2 = nn.Linear(channels // reduction, channels)  # Espansione dimensionale
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        batch, feature_maps, _, _ = x.shape
+        y = self.global_avg_pool(x).view(batch, feature_maps)  # Global Average Pooling
+        y = F.relu(self.fc1(y))  # ReLU dopo la riduzione dimensionale
+        y = self.sigmoid(self.fc2(y)).view(batch, feature_maps, 1, 1)  # Sigmoid e reshape
+        return x * y  # Applicazione dei pesi ai canali originali
+    
+class PatchSEEmbedding(nn.Module):
+    def __init__(self, f1=8, kernel_size=64, D=2, pooling_size1=8, pooling_size2=8, dropout_rate=0.25, number_channel=22, emb_size=16):
+        super().__init__()
+        f2 = D*f1
+        self.cnn_module = nn.Sequential(
+            # temporal conv kernel size 64=0.25fs
+            nn.Conv2d(1, f1, (1, kernel_size), (1, 1), padding='same', bias=False), # [batch, 22, 1000] 
+            nn.BatchNorm2d(f1),
+            # channel depth-wise conv
+            nn.Conv2d(f1, f2, (number_channel, 1), (1, 1), groups=f1, padding='valid', bias=False), # 
+            nn.BatchNorm2d(f2),
+            nn.ELU(),
+            # average pooling 1
+            nn.AvgPool2d((1, pooling_size1)),  # pooling acts as slicing to obtain 'patch' along the time dimension as in ViT
+            nn.Dropout(dropout_rate),
+            # spatial conv
+            nn.Conv2d(f2, f2, (1, 16), padding='same', bias=False),
+            # squeeze-and-excitation
+            SENet(f2),
+            # 
+            nn.BatchNorm2d(f2),
+            nn.ELU(),
+
+            # average pooling 2 to adjust the length of feature into transformer encoder
+            nn.AvgPool2d((1, pooling_size2)),
+            nn.Dropout(dropout_rate),  
+                    
+        )
+
+        self.projection = nn.Sequential(
+            Rearrange('b e (h) (w) -> b (h w) e'),
+        )
+        
+        
+    def forward(self, x: Tensor) -> Tensor:
+        b, _, _, _ = x.shape
+        x = self.cnn_module(x)
+        x = self.projection(x)
+        return x
+
+
+class BranchEEGSENetTransformer(nn.Sequential):
+    def __init__(self, heads=4, 
+                 depth=6, 
+                 emb_size=40, 
+                 number_channel=3,
+                 f1 = 20,
+                 kernel_size = 64,
+                 D = 2,
+                 pooling_size1 = 8,
+                 pooling_size2 = 8,
+                 dropout_rate = 0.3,
+                 **kwargs):
+        super().__init__(
+            PatchSEEmbedding(f1=f1, 
+                                 kernel_size=kernel_size,
+                                 D=D, 
+                                 pooling_size1=pooling_size1, 
+                                 pooling_size2=pooling_size2, 
+                                 dropout_rate=dropout_rate,
+                                 number_channel=number_channel,
+                                 emb_size=emb_size),
+        )
+        
+# CTNet       
+class CSETNet(nn.Module):
+    def __init__(self, heads=2, 
+                 emb_size=16,
+                 depth=6, 
+                 database_type='A', 
+                 eeg1_f1 = 8,
+                 eeg1_kernel_size = 64,
+                 eeg1_D = 2,
+                 eeg1_pooling_size1 = 8,
+                 eeg1_pooling_size2 = 8,
+                 eeg1_dropout_rate = 0.25,
+                 flatten_eeg1 = 240,
+                 num_classes = 2,
+                 channels = 3,
+                 model_name_prefix="CTNet",
+                 **kwargs):
+        super().__init__()
+        self.model_name_prefix = model_name_prefix
+        self.number_class, self.number_channel = num_classes, channels
+        self.emb_size = emb_size
+        self.flatten_eeg1 = flatten_eeg1
+        self.flatten = nn.Flatten()
+        print('self.number_channel', self.number_channel)
+        self.cnn = BranchEEGSENetTransformer(heads, depth, emb_size, number_channel=self.number_channel,
+                                              f1 = eeg1_f1,
+                                              kernel_size = eeg1_kernel_size,
+                                              D = eeg1_D,
+                                              pooling_size1 = eeg1_pooling_size1,
+                                              pooling_size2 = eeg1_pooling_size2,
+                                              dropout_rate = eeg1_dropout_rate,
+                                              )
+        self.position = PositioinalEncoding_CTNet(emb_size, dropout=0.1)
+        self.trans = TransformerEncoder_CTNet(heads, depth, emb_size)
+
+        self.flatten = nn.Flatten()
+        self.classification = ClassificationHead_CTNet(self.flatten_eeg1 , self.number_class) # FLATTEN_EEGNet + FLATTEN_cnn_module
+    
+    def forward(self, x):
+        cnn = self.cnn(x)
+
+        #  positional embedding
+        cnn = cnn * math.sqrt(self.emb_size)
+        cnn = self.position(cnn)
+        
+        trans = self.trans(cnn)
+        # residual connect
+        features = cnn+trans
+        
+        out = self.classification(self.flatten(features))
+        return out
+    
+    

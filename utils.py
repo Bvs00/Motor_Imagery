@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import random
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced_accuracy_score
 from Networks import LMDA, EEGNet, EEGConformer, EEGEncoder, EEGConformerPositional, EEGNetDilated, \
-    CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet, MSVTNet
+    CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet, MSVTNet, CSETNet
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
 
@@ -28,7 +28,8 @@ available_network = [
     'EEGConformer_Wout_Attention', 
     'CTNet',
     'PatchEmbeddingNet',
-    'MSVTNet'
+    'MSVTNet',
+    'CSETNet'
 ]
 
 network_factory_methods = {
@@ -44,7 +45,8 @@ network_factory_methods = {
     'EEGConformer_Wout_Attention': EEGConformer_Wout_Attention,
     'CTNet': CTNet, 
     'PatchEmbeddingNet': PatchEmbeddingNet,
-    'MSVTNet': MSVTNet
+    'MSVTNet': MSVTNet,
+    'CSETNet': CSETNet
 }
 
 available_augmentation = [
