@@ -373,33 +373,29 @@ class MSSEVTSENet(nn.Module):
             return x
         
 #################### MSVTSE_ChPos_Net ####################
-class Transformer_Ch(nn.Module):
-    def __init__(
-        self,
-        seq_len,
-        d_model, 
-        nhead, 
-        ff_ratio, 
-        Pt = 0.5, 
-        num_layers = 4, 
-    ) -> None:
+class TSConv_Ch(nn.Module):
+    def __init__(self, nCh, F, C1, C2, D, P1, P2, Pc) -> None:
         super().__init__()
-        self.cls_embedding = nn.Parameter(torch.zeros(1, 1, d_model))
-        # self.channel_pos_embedding = nn.Embedding()
-        self.pos_embedding = PositionalEncoding(seq_len + 1, d_model)
-
-        dim_ff =  d_model * ff_ratio
-        self.dropout = nn.Dropout(Pt)
-        self.trans = nn.TransformerEncoder(nn.TransformerEncoderLayer(
-            d_model, nhead, dim_ff, Pt, batch_first=True, norm_first=False #era True ho modificato in False per un warining
-        ), num_layers, norm=nn.LayerNorm(d_model))
-
+        self.channel_weight = nn.Parameter(torch.randn(F, 1, nCh), requires_grad=True) # matrice di pesi addestrabile per enfatizzare i canali Fx1xCh
+        
+        self.main_network = nn.Sequential(
+            nn.Conv2d(F, F, (1, C1), padding='same', bias=False),
+            nn.BatchNorm2d(F),
+            nn.Conv2d(F, F * D, (nCh, 1), groups=F, bias=False),
+            nn.BatchNorm2d(F * D),
+            nn.ELU(),
+            nn.AvgPool2d((1, P1)),
+            nn.Dropout(Pc),
+            nn.Conv2d(F * D, F * D, (1, C2), padding='same', groups=F * D, bias=False),
+            nn.BatchNorm2d(F * D),
+            nn.ELU(),
+            nn.AvgPool2d((1, P2)),
+            nn.Dropout(Pc)
+        )
+    
     def forward(self, x):
-        b = x.shape[0]
-        x = torch.cat((self.cls_embedding.expand(b, -1, -1), x), dim=1)
-        x = self.pos_embedding(x)
-        x = self.dropout(x)
-        return self.trans(x)[:, 0]
+        x = torch.einsum('bdcw, hdc->bhcw', x, self.channel_weight)
+        return self.main_network(x)
 
 class MSVTSE_ChPos_Net(nn.Module):
     def __init__(
@@ -419,7 +415,7 @@ class MSVTSE_ChPos_Net(nn.Module):
         assert len(F) == len(C1), 'The length of F and C1 should be equal.'
 
         self.mstsconv = nn.ModuleList([
-                TSConv(self.nCh, F[b], C1[b], C2, D, P1, P2, Pc)
+                TSConv_Ch(self.nCh, F[b], C1[b], C2, D, P1, P2, Pc)
             for b in range(len(F))
         ])
         self.rearrange = Rearrange('b d 1 t -> b t d')   # b x 18 x 1 x 17 e le feature maps diventano le nostra informazioni per ogni token (la lista di token diventa 17)
@@ -433,7 +429,7 @@ class MSVTSE_ChPos_Net(nn.Module):
         seq_len, d_model = self._forward_mstsconv().shape[1:3] # type: ignore
         print(seq_len)
         print(d_model)
-        self.transformer = Transformer_Ch(seq_len, d_model, nhead, ff_ratio, Pt, layers)
+        self.transformer = Transformer(seq_len, d_model, nhead, ff_ratio, Pt, layers)
 
         linear_in = self._forward_flatten().shape[1] # type: ignore
         self.last_head = ClsHead(linear_in, num_classes)
