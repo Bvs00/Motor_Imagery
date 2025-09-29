@@ -9,9 +9,9 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import random
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced_accuracy_score
-from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer, SuperCTNet
+from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer
 from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout_Attention
-from CTNet import CTNet, PatchEmbeddingNet, CSETNet
+from CTNet import CTNet, PatchEmbeddingNet, CSETNet, SuperCTNet
 from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChPos_Net
 
 import seaborn as sns
@@ -33,11 +33,11 @@ available_network = [
     'PatchEmbeddingNet',
     'MSVTNet',
     'CSETNet',
+    'SuperCTNet',
     'MSVTSENet', 
     'MSSEVTNet', 
     'MSSEVTSENet', 
     'MSVTSE_ChPos_Net'
-    'SuperCTNet'
 ]
 
 network_factory_methods = {
