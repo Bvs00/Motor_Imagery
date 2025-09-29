@@ -5,10 +5,10 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --nodelist=gnode13
-#SBATCH --job-name=MSVTNet_loso_revseg_1
-#SBATCH --output=MSVTNet_loso_revseg_1.log
-#SBATCH --dependency=87659
+#SBATCH --nodelist=gnode07
+#SBATCH --job-name=MSSEVTSENet_cross_segrec_2
+#SBATCH --output=MSSEVTSENet_cross_segrec_2.log
+#SBATCH --dependency=90473
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
