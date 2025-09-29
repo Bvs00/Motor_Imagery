@@ -48,7 +48,7 @@ def _train(data, labels, saved_path):
         y_train = torch.stack([train_subset[i][1] for i in range(len(train_subset))]).numpy()
         class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
         print(f"Class weights for this fold: {class_weights}")
-        if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' or args.name_model == 'MSVTSE_ChPos_Net':
+        if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' or args.name_model == 'MSVTSE_ChEmphasis_Net':
             criterion = JointCrossEntoryLoss()
         else:
             criterion = nn.CrossEntropyLoss(weight=class_weights)

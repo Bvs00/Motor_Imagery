@@ -397,9 +397,9 @@ class TSConv_Ch(nn.Module):
         x = torch.einsum('bdcw, hdc->bhcw', x, self.channel_weight)
         return self.main_network(x)
 
-class MSVTSE_ChPos_Net(nn.Module):
+class MSVTSE_ChEmphasis_Net(nn.Module):
     def __init__(
-        self, channels = 3, samples = 1000, num_classes = 2, model_name_prefix = 'MSVTSE_ChPos_Net',
+        self, channels = 3, samples = 1000, num_classes = 2, model_name_prefix = 'MSVTSE_ChEmphasis_Net',
         F = [9, 9, 9, 9], C1 = [15, 31, 63, 125], C2 = 15, D = 2, P1 = 8, P2 = 7, Pc = 0.3,
         nhead = 8,
         ff_ratio = 1,
