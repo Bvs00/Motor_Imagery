@@ -9,8 +9,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import random
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced_accuracy_score
-from Networks import LMDA, EEGNet, EEGConformer, EEGEncoder, EEGConformerPositional, EEGNetDilated, \
-    CKRLNet, SSCL_CSD, EEGNetConformer, EEGConformer_Wout_Attention, CTNet, PatchEmbeddingNet, MSVTNet, CSETNet, MSVTSENet
+from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer, 
+from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout_Attention
+from CTNet import CTNet, PatchEmbeddingNet, CSETNet
+from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChPos_Net
+
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
 
@@ -30,7 +33,10 @@ available_network = [
     'PatchEmbeddingNet',
     'MSVTNet',
     'CSETNet',
-    'MSVTSENet'
+    'MSVTSENet', 
+    'MSSEVTNet', 
+    'MSSEVTSENet', 
+    'MSVTSE_ChPos_Net'
 ]
 
 network_factory_methods = {
@@ -48,7 +54,10 @@ network_factory_methods = {
     'PatchEmbeddingNet': PatchEmbeddingNet,
     'MSVTNet': MSVTNet,
     'CSETNet': CSETNet,
-    'MSVTSENet': MSVTSENet
+    'MSVTSENet': MSVTSENet, 
+    'MSSEVTNet': MSSEVTNet, 
+    'MSSEVTSENet': MSSEVTSENet, 
+    'MSVTSE_ChPos_Net': MSVTSE_ChPos_Net
 }
 
 available_augmentation = [
