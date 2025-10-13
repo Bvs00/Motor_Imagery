@@ -12,7 +12,7 @@ from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced
 from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer
 from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout_Attention
 from CTNet import CTNet, PatchEmbeddingNet, CSETNet, SuperCTNet
-from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChPos_Net
+from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChEmphasis_Net
 
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
@@ -37,7 +37,7 @@ available_network = [
     'MSVTSENet', 
     'MSSEVTNet', 
     'MSSEVTSENet', 
-    'MSVTSE_ChPos_Net'
+    'MSVTSE_ChEmphasis_Net'
 ]
 
 network_factory_methods = {
@@ -59,7 +59,7 @@ network_factory_methods = {
     'MSVTSENet': MSVTSENet, 
     'MSSEVTNet': MSSEVTNet, 
     'MSSEVTSENet': MSSEVTSENet, 
-    'MSVTSE_ChPos_Net': MSVTSE_ChPos_Net
+    'MSVTSE_ChEmphasis_Net': MSVTSE_ChEmphasis_Net
 }
 
 available_augmentation = [
