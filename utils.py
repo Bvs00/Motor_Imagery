@@ -336,7 +336,7 @@ def find_max_f1(filename):
     return best_fold
 
 ################################# TRAIN AND VALIDATE ########################################
-class JointCrossEntoryLoss(nn.Module):
+class JointCrossEntropyLoss(nn.Module):
     def __init__(self, lamd : float = 0.6) -> None:
         super().__init__()
         self.lamd = lamd
@@ -364,7 +364,7 @@ def validate(model, val_loader, criterion, device):
             val_loss += loss.detach().item()
 
             # Ottenere le predizioni
-            if isinstance(criterion, JointCrossEntoryLoss):
+            if isinstance(criterion, JointCrossEntropyLoss):
                 outputs=outputs[0]
             _, preds = torch.max(outputs, 1)
             all_preds.extend(preds.cpu().numpy())

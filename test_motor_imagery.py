@@ -1,7 +1,7 @@
 import sys
 import os
 from utils import create_tensors, find_minum_loss, validate, plot_confusion_matrix, \
-    load_normalizations, available_paradigm, available_network, network_factory_methods, JointCrossEntoryLoss
+    load_normalizations, available_paradigm, available_network, network_factory_methods, JointCrossEntropyLoss
 import argparse
 from torch.utils.data import TensorDataset, DataLoader
 import json
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(f'{saved_path}/{args.name_model}_seed{args.seed}_best_model_fold{best_fold}.pth'))
 
         if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' or args.name_model == 'MSVTSE_ChEmphasis_Net':
-            criterion = JointCrossEntoryLoss()
+            criterion = JointCrossEntropyLoss()
         else:
             criterion = nn.CrossEntropyLoss()
 
