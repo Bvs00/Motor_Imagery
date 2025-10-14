@@ -6,9 +6,9 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
 #SBATCH --nodelist=gnode07
-#SBATCH --job-name=MSSEVTSENet_cross_segrec_2
-#SBATCH --output=MSSEVTSENet_cross_segrec_2.log
-#SBATCH --dependency=90473
+#SBATCH --job-name=MSVTSE_ChEmphasis_Net_cross_segrec_2
+#SBATCH --output=MSVTSE_ChEmphasis_Net_cross_segrec_2.log
+#SBATCH --dependency=90924
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
