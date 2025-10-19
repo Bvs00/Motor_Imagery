@@ -61,16 +61,16 @@ paradigm="$PARADIGM"
 # /mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/
 
 for seed in "${primes[@]}"; do
-  # echo "Train Event seed: $seed"
-  # python -u train_events.py --seed "$seed" --name_model "$network" --saved_path "$saved_path_events" --lr 0.001 \
-  #         --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
-  #         --train_set "/mnt/beegfs/sbove/2B/3_classes/train_2b_$bandpass.npz" \
-  #         --patience 150 --batch_size 72
-#   echo "Train seed: $seed"
-#   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path_mi" --lr 0.001 \
-#           --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
-#           --train_set "/mnt/beegfs/sbove/2B/3_classes/train_2b_$bandpass.npz" \
-#           --patience 150 --batch_size 72
+  echo "Train Event seed: $seed"
+  python -u train_events.py --seed "$seed" --name_model "$network" --saved_path "$saved_path_events" --lr 0.001 \
+          --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
+          --train_set "/mnt/beegfs/sbove/2B/3_classes/train_2b_$bandpass.npz" \
+          --patience 150 --batch_size 72
+  echo "Train seed: $seed"
+  python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path_mi" --lr 0.001 \
+          --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
+          --train_set "/mnt/beegfs/sbove/2B/3_classes/train_2b_$bandpass.npz" \
+          --patience 150 --batch_size 72
   echo "Test seed: $seed"
   python -u test_motor_imagery_double_stage.py --name_model "$network" --saved_path_mi "$saved_path_mi" \
           --saved_path_events "$saved_path_events" --saved_path_final "$saved_path_final" --paradigm "$paradigm" \
