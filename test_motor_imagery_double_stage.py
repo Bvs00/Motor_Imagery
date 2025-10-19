@@ -16,11 +16,14 @@ if __name__ == '__main__':
     parser.add_argument("--name_model", type=str, default='EEGNet', choices=available_network)
     parser.add_argument('--saved_path_mi', type=str, default='Results_4_49/Results_EEGNet/Patient')
     parser.add_argument('--saved_path_events', type=str, default='Results_4_49/Results_Events/Results_EEGNet/Patient')
-    parser.add_argument('--saved_final_path', type=str, default='Results_4_49/Results_2_classifier/Results_EEGNet/Patient')
+    parser.add_argument('--saved_path_final', type=str, default='Results_4_49/Results_2_classifier/Results_EEGNet/Patient')
     parser.add_argument('--device', type=str, default='cuda:0' if torch.cuda.is_available() else'cpu')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
     args = parser.parse_args()
+    
+    if not os.path.exists(args.saved_path_final):
+        os.makedirs(args.saved_path_final)    
     
     data_test_tensors_events, labels_test_tensors_events = create_tensors(args.test_set)
     # left -> 1; right -> 2
@@ -33,8 +36,8 @@ if __name__ == '__main__':
         data_train_tensors, labels_train_tensors = create_tensors(train_set_path)
     
     for patient in range(len(data_test_tensors_events)):
-        data_events, labels_events = data_test_tensors_events[patient], labels_test_tensors_events[patient].squeeze(1)
-
+        data_events, labels_events = data_test_tensors_events[patient], labels_test_tensors_events[patient]
+        
         saved_path_events = args.saved_path_events if args.paradigm=='Cross' else f'{args.saved_path_events}/Patient_{patient + 1}'
         mean_data_events, std_data_events, min_data_events, max_data_events = load_normalizations(f'{saved_path_events}/{args.name_model}')
         
@@ -115,15 +118,20 @@ if __name__ == '__main__':
             balanced_accuracy = balanced_accuracy_score(all_labels, all_preds)
             conf_matrix = confusion_matrix(all_labels, all_preds)
 
+        saved_path_final = args.saved_path_final if args.paradigm=='Cross' else f'{args.saved_path_final}/Patient_{patient + 1}'
+        
+        if not os.path.exists(saved_path_final):
+            os.makedirs(saved_path_final)
+            
         plot_confusion_matrix(conf_matrix, ['Background', 'Left Hand', 'Right Hand'] if conf_matrix.shape[0]==3 else ['Left Hand', 'Right Hand'], best_fold,
-                              f'{args.saved_final_path}_{patient + 1}_{args.name_model}_seed{args.seed}_test', balanced_accuracy)
-        final_results.append({'patient': patient+1, 'f1_score': f1, 'accuracy': accuracy, 'balanced_accuracy': balanced_accuracy})
+                              f'{saved_path_final}/{args.name_model}_seed{args.seed}_test', balanced_accuracy)
+        final_results.append({'Patient': patient+1, 'F1 Score': f1, 'Accuracy': accuracy, 'Balanced Accuracy': balanced_accuracy})
         f1_list.append(f1), accuracy_list.append(accuracy), balanced_accuracy_list.append(balanced_accuracy)
         
     final_results.append(
-        {f"Average": {"F1": np.mean(f1_list, axis=0).tolist(), "Accuracy": np.mean(accuracy_list), "Balanced Accuracy": np.mean(balanced_accuracy_list)}}
+        {f"Average": {"F1 Score": np.mean(f1_list, axis=0).tolist(), "Accuracy": np.mean(accuracy_list), "Balanced Accuracy": np.mean(balanced_accuracy_list)}}
     )
-    with open(f'{args.saved_final_path}_final_results_{args.name_model}_seed{args.seed}.json', 'w') as f:
+    with open(f'{args.saved_path_final}/Final_results_{args.name_model}_seed{args.seed}.json', 'w') as f:
         json.dump(final_results, f, indent=1)
 
     print('All patient test results have been saved.')

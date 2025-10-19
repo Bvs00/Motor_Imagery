@@ -5,16 +5,16 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --nodelist=gnode07
-#SBATCH --job-name=MSVTSE_ChEmphasis_Net_cross_segrec_2
-#SBATCH --output=MSVTSE_ChEmphasis_Net_cross_segrec_2.log
-#SBATCH --dependency=90924
+#SBATCH --nodelist=gnode09
+#SBATCH --job-name=MSVTSENet_loso_1
+#SBATCH --output=MSVTSENet_loso_1.log
+#SBATCH --dependency=101728
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
 
-if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ]; then
-    echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM!"
+if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ]; then
+    echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM, CLASSES!"
     echo "Utilizzo: NET=<valore> PRIME=<valore> AUG=<valore> ./script.sh"
     exit 1
 fi
@@ -27,6 +27,7 @@ echo "$NORM"
 echo "$BANDPASS"
 echo "$PARADIGM"
 echo "$TORCH_DEVICE"
+echo "$CLASSES"
 
 if [ "$PRIME" == "1" ]; then
   primes=(42 71 101 113 127 131 139 149 157 163 173 181 322 521)
@@ -48,15 +49,16 @@ saved_path="$SAVED_PATH"
 normalization="$NORM"
 bandpass="$BANDPASS"
 paradigm="$PARADIGM"
+classes="$CLASSES"
 
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   $PYTHON -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
           --augmentation "$aug" --num_workers 32 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/beegfs/sbove/2B/train_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
-          --patience 150 --batch_size 72
+          --train_set "/mnt/beegfs/sbove/2B/${classes}_classes/train_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
+          --patience 100 --batch_size 72
   $PYTHON -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/beegfs/sbove/2B/test_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
+          --test_set "/mnt/beegfs/sbove/2B/${classes}_classes/test_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
           --seed "$seed"
 done
 
