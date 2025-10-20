@@ -1,5 +1,5 @@
-from utils import train_model, plot_training_complete_loso, normalize_subset, create_tensors, fix_seeds,\
-    create_data_loader, saved_normalizations, find_minum_loss, train_fine_tuning_model,\
+from utils import train_model, plot_training_complete, normalize_subset, create_tensors, fix_seeds,\
+    create_data_loader, saved_normalizations, find_minum_loss,\
     available_network, network_factory_methods, available_augmentation, available_normalization, \
     normalization_factory_methods, available_paradigm, JointCrossEntropyLoss
 import sys
@@ -37,7 +37,7 @@ def _train(data, labels, saved_path, saved_path_loso):
         pretrained_model = (
             network_factory_methods[args.name_model](
                 model_name_prefix=f'{saved_path}/{args.name_model}_seed{args.seed}',
-                num_classes=len(np.unique(labels)), subjects=8,
+                num_classes=len(np.unique(labels)),
                 samples=data.shape[3], channels=data.shape[2])
         )
         pretrained_model.to(args.device)
@@ -68,14 +68,14 @@ def _train(data, labels, saved_path, saved_path_loso):
             for param in pretrained_model.last_head_task.parameters():
                 param.requires_grad = True
         
-        train_fine_tuning_model(model=pretrained_model, fold_performance=fold_performance, train_loader=train_loader, val_loader=val_loader, 
+        train_model(model=pretrained_model, fold_performance=fold_performance, train_loader=train_loader, val_loader=val_loader, 
                     fold=fold, lr=args.lr, criterion=criterion_tasks, epochs=args.epochs, device=args.device, 
                     augmentation=args.augmentation, patience=args.patience, checkpoint_flag=args.checkpoint_flag)
 
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_validation_log.txt', 'w') as f:
         pass
 
-    plot_training_complete_loso(fold_performance,
+    plot_training_complete(fold_performance,
                            f'{saved_path}/{args.name_model}_seed{args.seed}', args.fold)
 
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_model_params.json', 'w') as fw:
