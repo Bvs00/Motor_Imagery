@@ -12,7 +12,7 @@ from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced
 from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer
 from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout_Attention
 from CTNet import CTNet, PatchEmbeddingNet, CSETNet, SuperCTNet
-from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChEmphasis_Net
+from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChEmphasis_Net, MSVT_SE_Net
 
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
@@ -37,7 +37,8 @@ available_network = [
     'MSVTSENet', 
     'MSSEVTNet', 
     'MSSEVTSENet', 
-    'MSVTSE_ChEmphasis_Net'
+    'MSVTSE_ChEmphasis_Net', 
+    'MSVT_SE_Net'
 ]
 
 network_factory_methods = {
@@ -59,7 +60,8 @@ network_factory_methods = {
     'MSVTSENet': MSVTSENet, 
     'MSSEVTNet': MSSEVTNet, 
     'MSSEVTSENet': MSSEVTSENet, 
-    'MSVTSE_ChEmphasis_Net': MSVTSE_ChEmphasis_Net
+    'MSVTSE_ChEmphasis_Net': MSVTSE_ChEmphasis_Net, 
+    'MSVT_SE_Net': MSVT_SE_Net
 }
 
 available_augmentation = [
@@ -274,7 +276,7 @@ def plot_training_complete(fold_performance, name, folds):
         with open(f'{name}_validation_log.txt', 'a') as f:
             f.write(f'Fold {fold + 1} - Loss: {performance[0]:.4f}, F1: {performance[1]}, Confusion Matrix: '
                     f'{performance[2]}, Accuracy: {performance[3]:.4f}, Balanced Accuracy: {performance[4]:.4f}\n')
-        plot_confusion_matrix(performance[2], ['Rest', 'Left Hand', 'Right Hand'] if fold_performance[0][2].shape[0]==3 else ['Left Hand', 'Right Hand'] , (fold + 1), name, performance[3])
+        plot_confusion_matrix(performance[2], ['Rest', 'Left Hand', 'Right Hand'] if fold_performance[0][2].shape[0]==3 else ['Left Hand', 'Right Hand'] , (fold + 1), name, performance[4])
     avg_loss = np.mean([performance[0] for performance in fold_performance])
     avg_f1 = np.mean([performance[1] for performance in fold_performance])
     if folds > 1:

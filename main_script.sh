@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ]; then
+if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ]; then
     echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM!"
     echo "Utilizzo: NET=<valore> PRIME=<valore> AUG=<valore> ./script.sh"
     exit 1
@@ -13,6 +13,7 @@ echo "$SAVED_PATH"
 echo "$NORM"
 echo "$BANDPASS"
 echo "$PARADIGM"
+echo "$CLASSES"
 
 
 if [ "$PRIME" == "1" ]; then
@@ -35,6 +36,7 @@ saved_path="$SAVED_PATH"
 normalization="$NORM"
 bandpass="$BANDPASS"
 paradigm="$PARADIGM"
+classes="$CLASSES"
 
 # /home/inbit/Scrivania/Datasets/2B/
 # /mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/
@@ -43,10 +45,10 @@ for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
           --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/train_2b_$bandpass.npz" \
-          --patience 150 --batch_size 72
+          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_${classes}classes/train_2b_$bandpass.npz" \
+          --patience 1 --batch_size 72
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_$bandpass.npz" \
+          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_${classes}classes/test_2b_$bandpass.npz" \
           --seed "$seed"
 done
 

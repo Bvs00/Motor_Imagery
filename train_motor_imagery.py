@@ -21,12 +21,11 @@ def _compute_loso(data_full, labels_full, patient):
     
     return data, labels
 
-def _train(data, labels, saved_path):
+def _train(data, labels, saved_path, fold_performance):
     """    
     This function compute the normalization of the training data, save the normalization in saved_path 
     and create a 5 fold cross validation and train the model. 
     """
-    fold_performance = []
     if args.paradigm=='LOSO':
         # Normalize Full Dataset
         mean, std, min_, max_ = normalization_factory_methods[args.normalization](torch.cat(data))
@@ -47,7 +46,7 @@ def _train(data, labels, saved_path):
             train_subset = TensorDataset(data_train, labels_train)
             val_subset = TensorDataset(data_validation, labels_validation)
             
-            _create_train_model_subsets(saved_path, labels_train, data_train, elem, train_subset, val_subset, len(data))
+            _create_train_model_subsets(saved_path, labels_train, data_train, elem, train_subset, val_subset, len(data), fold_performance)
     else:
     
     # Normalize Full Dataset
@@ -55,7 +54,6 @@ def _train(data, labels, saved_path):
         
         saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
         
-        fold_performance = []
         dataset = TensorDataset(data, labels)
         kfold = KFold(n_splits=args.fold, shuffle=True, random_state=42)
 
@@ -65,7 +63,7 @@ def _train(data, labels, saved_path):
             train_subset = Subset(dataset, train_idx)
             val_subset = Subset(dataset, val_idx)
             
-            _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, args.fold)
+            _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, args.fold, fold_performance)
         
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_validation_log.txt', 'w') as f:
         pass
@@ -81,7 +79,7 @@ def _train(data, labels, saved_path):
         json.dump(out_params, fw, indent=4)
 
 
-def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, tot_folds):
+def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, tot_folds, fold_performance):
     fix_seeds(args.seed)
     model = (
         network_factory_methods[args.name_model](
@@ -98,7 +96,7 @@ def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, va
     y_train = torch.stack([train_subset[i][1] for i in range(len(train_subset))]).numpy()
     class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
     print(f"Class weights for this fold: {class_weights}")
-    if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' or args.name_model == 'MSVTSE_ChEmphasis_Net':
+    if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net':
         criterion = JointCrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -142,7 +140,7 @@ if __name__ == '__main__':
         labels = torch.cat(labels_train_tensors)
         fold_performance = []
         
-        _train(data, labels, args.saved_path)
+        _train(data, labels, args.saved_path, fold_performance)
         
         
     elif args.paradigm=='Single':
