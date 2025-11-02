@@ -73,9 +73,9 @@ def _train(data, labels, saved_path, fold_performance):
 
     with open(f'{saved_path}/{args.name_model}_seed{args.seed}_model_params.json', 'w') as fw:
         out_params = vars(args)
-        out_params['num_classes'] = len(np.unique(labels))
-        out_params['samples'] = data.shape[3]
-        out_params['channels'] = data.shape[2]
+        out_params['num_classes'] = len(np.unique(torch.cat(labels))) if args.paradigm == 'LOSO' else len(np.unique(labels))
+        out_params['samples'] = torch.cat(data).shape[3] if args.paradigm == 'LOSO' else data.shape[3]
+        out_params['channels'] = torch.cat(data).shape[2] if args.paradigm == 'LOSO' else data.shape[2]
         json.dump(out_params, fw, indent=4)
 
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
             saved_path = f'{args.saved_path}/Patient_{patient+1}'
             fold_performance = []
             
-            _train(data, labels, saved_path)
+            _train(data, labels, saved_path, fold_performance)
 
     elif args.paradigm=='LOSO':
         
@@ -178,7 +178,7 @@ if __name__ == '__main__':
             saved_path = f'{args.saved_path}/Patient_{patient+1}'
             fold_performance = []
             
-            _train(data, labels, saved_path)
+            _train(data, labels, saved_path, fold_performance)
         
     print("FINISHED Training")
     
