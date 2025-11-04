@@ -1,6 +1,7 @@
 #!/bin/bash
 
-if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ]; then
+if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] \
+|| [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ] || [ -z "$DATASET" ]; then
     echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM!"
     echo "Utilizzo: NET=<valore> PRIME=<valore> AUG=<valore> ./script.sh"
     exit 1
@@ -14,6 +15,7 @@ echo "$NORM"
 echo "$BANDPASS"
 echo "$PARADIGM"
 echo "$CLASSES"
+echo "$DATASET"
 
 
 if [ "$PRIME" == "1" ]; then
@@ -37,6 +39,7 @@ normalization="$NORM"
 bandpass="$BANDPASS"
 paradigm="$PARADIGM"
 classes="$CLASSES"
+dataset="$DATASET"
 
 # /home/inbit/Scrivania/Datasets/2B/
 # /mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/
@@ -44,11 +47,11 @@ classes="$CLASSES"
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
-          --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_${classes}classes/train_2b_$bandpass.npz" \
-          --patience 1 --batch_size 72
+          --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
+          --train_set "/mnt/datasets/eeg/Dataset_BCI_${dataset}/Signals_BCI_${classes}classes/train_${dataset}_$bandpass.npz" \
+          --patience 150 --batch_size 72
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_${classes}classes/test_2b_$bandpass.npz" \
+          --test_set "/mnt/datasets/eeg/Dataset_BCI_${dataset}/Signals_BCI_${classes}classes/test_${dataset}_$bandpass.npz" \
           --seed "$seed"
 done
 

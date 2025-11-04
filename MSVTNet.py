@@ -614,3 +614,60 @@ class MSVT_SE_SE_Net(nn.Module):
             return x, bx
         else:
             return x
+        
+################################### MSVT_SE_SE_Net_WoutAux #######################################
+
+class MSVT_SE_SE_Net_WoutAux(nn.Module):
+    def __init__(
+        self, channels = 3, samples = 1000, num_classes = 2, model_name_prefix = 'MSVT_SE_SE_Net_WoutAux',
+        F = [9, 9, 9, 9], C1 = [15, 31, 63, 125], C2 = 15, D = 2, P1 = 8, P2 = 7, Pc = 0.3,
+        nhead = 8,
+        ff_ratio = 1,
+        Pt = 0.5,
+        layers = 2,
+    ) -> None:
+        super().__init__()
+        self.model_name_prefix = model_name_prefix
+        self.nCh = channels
+        self.nTime = samples
+        assert len(F) == len(C1), 'The length of F and C1 should be equal.'
+
+        self.mstsconv = nn.ModuleList([
+            TSConv_SE(self.nCh, F[b], C1[b], C2, D, P1, P2, Pc)
+            for b in range(len(F))
+        ])
+        self.rearrange = Rearrange('b d 1 t -> b t d')   # b x 18 x 1 x 17 e le feature maps diventano le nostra informazioni per ogni token (la lista di token diventa 17
+        self.se_module = SENet(D*sum(F))
+        branch_linear_in = self._forward_flatten(cat=False)
+
+        seq_len, d_model = self._forward_mstsconv().shape[1:3] # type: ignore
+        self.transformer = Transformer(seq_len, d_model, nhead, ff_ratio, Pt, layers)
+
+        linear_in = self._forward_flatten().shape[1] # type: ignore
+        self.last_head = ClsHead(linear_in, num_classes)
+
+    def _forward_mstsconv(self, cat = True):
+        x = torch.randn(1, 1, self.nCh, self.nTime)
+        x = [tsconv(x) for tsconv in self.mstsconv]
+        x = [self.rearrange(x_i) for x_i in x]
+        if cat:
+            x = torch.cat(x, dim=2)
+        return x
+
+    def _forward_flatten(self, cat = True):
+        x = self._forward_mstsconv(cat)
+        if cat:
+            x = self.transformer(x)
+            x = x.flatten(start_dim=1, end_dim=-1)
+        else:
+            x = [_.flatten(start_dim=1, end_dim=-1) for _ in x]
+        return x
+
+    def forward(self, x):
+        x = [tsconv(x) for tsconv in self.mstsconv]
+        x = torch.cat(x, dim=1)
+        x = self.se_module(x)
+        x = self.rearrange(x)
+        x = self.transformer(x)
+        x = self.last_head(x)
+        return x
