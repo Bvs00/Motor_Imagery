@@ -81,11 +81,12 @@ def _train(data, labels, saved_path, fold_performance):
 
 def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, tot_folds, fold_performance):
     fix_seeds(args.seed)
+    extra_args = {'b_preds': args.auxilary_branch} if 'MS' in args.name_model else {}
     model = (
         network_factory_methods[args.name_model](
             model_name_prefix=f'{saved_path}/{args.name_model}_seed{args.seed}',
             num_classes=len(np.unique(labels)),
-            samples=data.shape[3], channels=data.shape[2])
+            samples=data.shape[3], channels=data.shape[2], **extra_args) 
     )
     model.to(args.device)
     print(f"Fold {fold + 1}/{tot_folds}")
@@ -96,8 +97,8 @@ def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, va
     y_train = torch.stack([train_subset[i][1] for i in range(len(train_subset))]).numpy()
     class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
     print(f"Class weights for this fold: {class_weights}")
-    if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
-        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net':
+    if (args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
+        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxilary_branch):
         criterion = JointCrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -123,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--augmentation', type=str, choices=available_augmentation)
     parser.add_argument('--normalization', type=str, choices=available_normalization)
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
+    parser.add_argument('-auxilary_branch', action='store_true', default=False)
     parser.add_argument('-checkpoint_flag', action='store_true', default=True)
     args = parser.parse_args()
     
