@@ -18,7 +18,10 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda:0' if torch.cuda.is_available() else'cpu')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
+    parser.add_argument('--auxiliary_branch', type=str, default='True')
     args = parser.parse_args()
+    
+    args.auxiliary_branch = True if args.auxiliary_branch == 'True' else False
     
     data_test_tensors, labels_test_tensors = create_tensors(args.test_set)
     loss_list, f1_list, accuracy_list, balanced_accuracy_list, final_results = [], [], [], [], []
@@ -48,17 +51,17 @@ if __name__ == '__main__':
         test_loader = DataLoader(dataset, batch_size=256, num_workers=5)
 
         best_fold = find_minum_loss(f'{saved_path}/{args.name_model}_seed{args.seed}_validation_log.txt')
-
+        extra_args = {'b_preds': args.auxiliary_branch} if 'MS' in args.name_model else {}
         model = (
             network_factory_methods[args.name_model](model_name_prefix=f'{saved_path}/{args.name_model}_seed{args.seed}',
                 num_classes=len(np.unique(labels)),
-                samples=data.shape[3], channels=data.shape[2])
+                samples=data.shape[3], channels=data.shape[2], **extra_args)
         )
         model.to(args.device)
         model.load_state_dict(torch.load(f'{saved_path}/{args.name_model}_seed{args.seed}_best_model_fold{best_fold}.pth'))
 
-        if args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
-            or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net':
+        if (args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
+            or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxiliary_branch):
             criterion = JointCrossEntropyLoss()
         else:
             criterion = nn.CrossEntropyLoss()
