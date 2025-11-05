@@ -63,7 +63,7 @@ network_factory_methods = {
     'MSSEVTSENet': MSSEVTSENet, 
     'MSVTSE_ChEmphasis_Net': MSVTSE_ChEmphasis_Net, 
     'MSVT_SE_Net': MSVT_SE_Net,
-    'MSVT_SE_SE_Net': MSVT_SE_SE_Net
+    'MSVT_SE_SE_Net': MSVT_SE_SE_Net,
 }
 
 available_augmentation = [
