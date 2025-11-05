@@ -81,7 +81,7 @@ def _train(data, labels, saved_path, fold_performance):
 
 def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, val_subset, tot_folds, fold_performance):
     fix_seeds(args.seed)
-    extra_args = {'b_preds': args.auxilary_branch} if 'MS' in args.name_model else {}
+    extra_args = {'b_preds': args.auxiliary_branch} if 'MS' in args.name_model else {}
     model = (
         network_factory_methods[args.name_model](
             model_name_prefix=f'{saved_path}/{args.name_model}_seed{args.seed}',
@@ -98,7 +98,7 @@ def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, va
     class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
     print(f"Class weights for this fold: {class_weights}")
     if (args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
-        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxilary_branch):
+        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxiliary_branch):
         criterion = JointCrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -124,13 +124,16 @@ if __name__ == '__main__':
     parser.add_argument('--augmentation', type=str, choices=available_augmentation)
     parser.add_argument('--normalization', type=str, choices=available_normalization)
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
-    parser.add_argument('-auxilary_branch', action='store_true', default=False)
+    parser.add_argument('--auxiliary_branch', type=str, default='True')
     parser.add_argument('-checkpoint_flag', action='store_true', default=True)
     args = parser.parse_args()
     
     print(f"DEVICE: {args.device}")
     if args.augmentation == "None":
         args.augmentation= None
+    
+    args.auxiliary_branch = True if args.auxiliary_branch == 'True' else False
+    print(f'Auxiliary Branch condition: {args.auxiliary_branch}')
     
     if not os.path.exists(args.saved_path):
         os.makedirs(args.saved_path)
