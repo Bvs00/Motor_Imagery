@@ -5,15 +5,16 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --nodelist=gnode07
-#SBATCH --job-name=MSVT_SE_Net_1
-#SBATCH --output=MSVT_SE_Net_1.log
-#SBATCH --dependency=113895
+#SBATCH --nodelist=gnode09
+#SBATCH --job-name=MSVT_SE_SE_Net_1_2a_single
+#SBATCH --output=MSVT_SE_SE_Net_1_2a_single.log
+
 
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
 
-if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ]; then
+if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] \
+    || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ] || [ -z "$DATASET" ] || [ -z "$AUX" ] ; then
     echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM, CLASSES!"
     echo "Utilizzo: NET=<valore> PRIME=<valore> AUG=<valore> ./script.sh"
     exit 1
@@ -28,6 +29,8 @@ echo "$BANDPASS"
 echo "$PARADIGM"
 echo "$TORCH_DEVICE"
 echo "$CLASSES"
+echo "$DATASET"
+echo "$AUX"
 
 if [ "$PRIME" == "1" ]; then
   primes=(42 71 101 113 127 131 139 149 157 163 173 181 322 521)
@@ -42,7 +45,7 @@ elif [ "$PRIME" == "5" ]; then
 elif [ "$PRIME" == "6" ]; then
   primes=(149 157 163 173)
 elif [ "$PRIME" == "7" ]; then
-  primes=(521)
+  primes=(131)
 fi
 
 
@@ -54,16 +57,18 @@ normalization="$NORM"
 bandpass="$BANDPASS"
 paradigm="$PARADIGM"
 classes="$CLASSES"
+dataset="$DATASET"
+aux="$AUX"
 
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   $PYTHON -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
           --augmentation "$aug" --num_workers 32 --normalization "$normalization" --paradigm "$paradigm" \
-          --train_set "/mnt/beegfs/sbove/2B/${classes}_classes/train_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
-          --patience 100 --batch_size 72
+          --train_set "/mnt/beegfs/sbove/${dataset}/${classes}_classes/train_${dataset}_$bandpass.npz" --device "$TORCH_DEVICE"\
+          --patience 100 --batch_size 72 --auxiliary_branch "$aux"
   $PYTHON -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
-          --test_set "/mnt/beegfs/sbove/2B/${classes}_classes/test_2b_$bandpass.npz" --device "$TORCH_DEVICE"\
-          --seed "$seed"
+          --test_set "/mnt/beegfs/sbove/${dataset}/${classes}_classes/test_${dataset}_$bandpass.npz" --device "$TORCH_DEVICE"\
+          --seed "$seed" --auxiliary_branch "$aux"
 done
 
 $PYTHON create_excel_motor_imagery.py --network "$network" --path "$saved_path"
