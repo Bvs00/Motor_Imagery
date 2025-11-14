@@ -11,7 +11,8 @@ import random
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, balanced_accuracy_score
 from Networks import LMDA, EEGNet, EEGEncoder, EEGNetDilated, CKRLNet, SSCL_CSD, EEGNetConformer
 from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout_Attention
-from CTNet import CTNet, PatchEmbeddingNet, CSETNet, SuperCTNet
+from PatchEmbeddingNet import PatchEmbeddingNet
+from CTNet import CTNet, CSETNet
 from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChEmphasis_Net, MSVT_SE_Net, MSVT_SE_SE_Net
 
 import seaborn as sns
