@@ -252,7 +252,7 @@ class PatchSEEmbedding(nn.Module):
             # temporal conv kernel size 64=0.25fs
             nn.Conv2d(1, f1, (1, kernel_size), (1, 1), padding='same', bias=False), # [batch, 22, 1000] 
             # squeeze-and-excitation
-            SENet(f2),
+            SENet(f1),
             # 
             nn.BatchNorm2d(f1),
             # channel depth-wise conv
@@ -315,7 +315,7 @@ class CSETNet(nn.Module):
                  depth=6, 
                  database_type='A', 
                  eeg1_f1 = 8,
-                 eeg1_kernel_size = 64,
+                 eeg1_kernel_size = 63,
                  eeg1_D = 2,
                  eeg1_pooling_size1 = 8,
                  eeg1_pooling_size2 = 8,
