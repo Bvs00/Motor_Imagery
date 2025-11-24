@@ -229,6 +229,21 @@ def create_tensors_events(dataset_path):
 
     return data_tensor, labels_tensor
 
+def create_tensors_subjects(dataset_path):
+    dataset = np.load(dataset_path, allow_pickle=True)
+    data_tensor = []
+    data_list = dataset['data']
+    for data in data_list:
+        data_tensor.append(torch.tensor(data).float().unsqueeze(1))
+    labels_tensor = []
+    labels_subjects = []
+    labels_list = dataset['labels']
+    for subject, labels in enumerate(labels_list):
+        labels_tensor.append(torch.tensor(labels))
+        labels_subjects.append(torch.full_like(labels_tensor[subject], subject))
+    
+    return data_tensor, labels_tensor, labels_subjects
+
 ######################## FIX SEED #################################
 def fix_seeds(seed=42):
     random.seed(seed)  # Per il modulo random standard di Python

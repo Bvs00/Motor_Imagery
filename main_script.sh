@@ -28,6 +28,8 @@ elif [ "$PRIME" == "4" ]; then
   primes=(42 71 101 113 127 131 139)
 elif [ "$PRIME" == "5" ]; then
   primes=(149 157 163 173 181 322 521)
+  elif [ "$PRIME" == "6" ]; then
+  primes=(131)
 fi
 
 
