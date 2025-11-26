@@ -9,13 +9,13 @@ import math
 
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, emb_size=40):
+    def __init__(self, emb_size=40, ch=3):
         # self.patch_size = patch_size
         super().__init__()
 
         self.shallownet = nn.Sequential(
             nn.Conv2d(1, 40, (1, 25), (1, 1)),
-            nn.Conv2d(40, 40, (3, 1), (1, 1)),
+            nn.Conv2d(40, 40, (ch, 1), (1, 1)),
             nn.BatchNorm2d(40),
             nn.ELU(),
             nn.AvgPool2d((1, 75), (1, 15)),
@@ -196,7 +196,7 @@ class ClassificationHead(nn.Sequential):
             nn.Linear(256, 32),
             nn.ELU(),
             nn.Dropout(0.3),
-            nn.Linear(32, 2)
+            nn.Linear(32, n_classes)
         )
 
     def forward(self, x):
@@ -209,9 +209,13 @@ class ClassificationHead(nn.Sequential):
 # ! Rethink the use of Transformer for EEG signal
 class EEGConformer(nn.Sequential):
     def __init__(self, emb_size=40, depth=10, num_classes=2, model_name_prefix='EEGConformer', samples=1001, channels=3):
+        if num_classes==2:
+            depth=10
+        else:
+            depth=6
         super().__init__(
 
-            PatchEmbedding(emb_size),
+            PatchEmbedding(emb_size, channels),
             TransformerEncoder(depth, emb_size),
             ClassificationHead(emb_size, num_classes)
         )
@@ -220,9 +224,13 @@ class EEGConformer(nn.Sequential):
 
 class EEGConformerPositional(nn.Sequential):
     def __init__(self, emb_size=40, depth=10, num_classes=2, model_name_prefix='EEGConformer_Positional', samples=1001, channels=3):
+        if num_classes==2:
+            depth=10
+        else:
+            depth=6
         super().__init__(
 
-            PatchEmbedding(emb_size),
+            PatchEmbedding(emb_size, channels),
             PositionalEncoding(emb_size, 61),
             TransformerEncoder(depth, emb_size),
             ClassificationHead(emb_size, num_classes)
