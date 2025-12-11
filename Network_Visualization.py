@@ -398,7 +398,7 @@ class MSVT_SE_SE_Net(nn.Module):
             x = [_.flatten(start_dim=1, end_dim=-1) for _ in x]
         return x
 
-    def forward(self, x, return_attention):
+    def forward(self, x, return_attention=False):
         if return_attention:
             x = [tsconv(x, return_attention) for tsconv in self.mstsconv]
             se_weights_branches = [branch[1] for branch in x]
