@@ -126,6 +126,7 @@ if __name__ == '__main__':
     parser.add_argument('--paradigm', type=str, choices=available_paradigm)
     parser.add_argument('--auxiliary_branch', type=str, default='True')
     parser.add_argument('-checkpoint_flag', action='store_true', default=True)
+    parser.add_argument('-dm', action='store_true', default=False)
     args = parser.parse_args()
     
     print(f"DEVICE: {args.device}")
@@ -144,6 +145,14 @@ if __name__ == '__main__':
     if args.paradigm=='Cross':
         data = torch.cat(data_train_tensors)
         labels = torch.cat(labels_train_tensors)
+        if args.dm:
+            tmp_dataset = np.load('/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/train_2b_full_generated_1.npz', allow_pickle=True)
+            tmp_data = torch.tensor(tmp_dataset['data']).float()
+            tmp_labels = torch.tensor(tmp_dataset['labels'])
+            data = torch.cat([data, tmp_data], dim=0)
+            labels = torch.cat([labels, tmp_labels], dim=0)
+            print(data.shape)
+            print(labels.shape)
         fold_performance = []
         
         _train(data, labels, args.saved_path, fold_performance)
