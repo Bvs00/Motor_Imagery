@@ -24,7 +24,7 @@ if __name__ == '__main__':
     args.auxiliary_branch = True if args.auxiliary_branch == 'True' else False
     
     data_test_tensors, labels_test_tensors = create_tensors(args.test_set)
-    loss_list, f1_list, accuracy_list, balanced_accuracy_list, final_results = [], [], [], [], []
+    loss_list, f1_list, accuracy_list, balanced_accuracy_list, kappa_list, final_results = [], [], [], [], [], []
     
     if args.paradigm=='LOSO':
         dir_path, filename = os.path.split(args.test_set)
@@ -66,21 +66,22 @@ if __name__ == '__main__':
         else:
             criterion = nn.CrossEntropyLoss()
 
-        avg_loss, f1, confusion_matrix, accuracy, balanced_accuracy = validate(model, test_loader, criterion, args.device)
+        avg_loss, f1, confusion_matrix, accuracy, balanced_accuracy, kappa = validate(model, test_loader, criterion, args.device)
 
         plot_confusion_matrix(confusion_matrix, ['Background', 'Left Hand', 'Right Hand'] if confusion_matrix.shape[0]==3 else ['Left Hand', 'Right Hand'], best_fold,
                             f'{saved_path}/{args.name_model}_seed{args.seed}_test', balanced_accuracy)
 
         if args.paradigm == 'Single' or args.paradigm == 'LOSO':
             with open(f'{saved_path}/{args.name_model}_seed{args.seed}_test_results.json', 'w') as f:
-                json.dump({'average_loss': avg_loss, 'f1_score': f1, 'accuracy': accuracy, 'balanced_accuracy': balanced_accuracy}, f, indent=4)
+                json.dump({'average_loss': avg_loss, 'f1_score': f1, 'accuracy': accuracy, 'balanced_accuracy': balanced_accuracy, 'kappa': kappa}, f, indent=4)
 
-        loss_list.append(avg_loss), f1_list.append(f1), accuracy_list.append(accuracy), balanced_accuracy_list.append(balanced_accuracy)
+        loss_list.append(avg_loss), f1_list.append(f1), accuracy_list.append(accuracy), balanced_accuracy_list.append(balanced_accuracy), kappa_list.append(kappa)
 
-        final_results.append({'Patient': patient+1, 'Loss': avg_loss, 'F1 Score': f1, 'Accuracy': accuracy, 'Balanced Accuracy': balanced_accuracy})
+        final_results.append({'Patient': patient+1, 'Loss': avg_loss, 'F1 Score': f1, 'Accuracy': accuracy, 'Balanced Accuracy': balanced_accuracy, 'Kappa': kappa})
 
     final_results.append(
-        {f"Average": {"Loss": np.mean(loss_list), "F1 Score": np.mean(f1_list, axis=0).tolist(), "Accuracy": np.mean(accuracy_list), "Balanced Accuracy": np.mean(balanced_accuracy_list)}}
+        {f"Average": {"Loss": np.mean(loss_list), "F1 Score": np.mean(f1_list, axis=0).tolist(), "Accuracy": np.mean(accuracy_list), \
+            "Balanced Accuracy": np.mean(balanced_accuracy_list), "Kappa": np.mean(kappa_list)}}
     )
 
     with open(f'{args.saved_path}/Final_results_{args.name_model}_seed{args.seed}.json', 'w') as f:

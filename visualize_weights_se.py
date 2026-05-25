@@ -1,7 +1,8 @@
 import sys
 import os
 from utils import create_tensors, find_minum_loss, validate, \
-    load_normalizations, available_paradigm, available_network, network_factory_methods, JointCrossEntropyLoss
+    load_normalizations, available_paradigm, available_network, JointCrossEntropyLoss
+from Network_Visualization import network_factory_methods
 import argparse
 from torch.utils.data import TensorDataset, DataLoader
 import json
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_set', type=str, default='/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_full.npz')
     parser.add_argument("--name_model", type=str, default='MSVT_SE_SE_Net', help="Name of model that use", choices=available_network)
-    parser.add_argument('--saved_path', type=str, default='Results_Black/Results_Z_Score_unique/Results_SegRec/Results_Cross/Results_MSVT_SE_SE_Net_Full_NoBandpass')
+    parser.add_argument('--saved_path', type=str, default='Results_Black/Results_Z_Score_unique/Results_SegRec/Results_Cross/Results_MSVT_SE_SE_Net_Wout_Aux_Full_NoBandpass')
     parser.add_argument('--saved_path_plot', type=str, default='Visualization_SE_Weights')
     parser.add_argument('--device', type=str, default='cuda:0' if torch.cuda.is_available() else'cpu')
     parser.add_argument('--seed', type=int, default=42)
