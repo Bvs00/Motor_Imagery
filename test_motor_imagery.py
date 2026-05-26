@@ -42,10 +42,14 @@ if __name__ == '__main__':
         
         mean, std, min_, max_ = load_normalizations(f'{saved_path}/{args.name_model}')
         
-        if mean != None:
-            data = (data - mean)/std
+        if mean == None and std == None and min_ == None and max_ == None:
+            max_value_samples = torch.amax(torch.abs(data), dim=(1,2,3), keepdim=True)
+            data = data/(max_value_samples + 1e-8)
         else:
-            data = (data - min_)/(max_ - min_)
+            if mean != None:
+                data = (data - mean)/std
+            else:
+                data = (data - min_)/(max_ - min_)
 
         dataset = TensorDataset(data, labels)
         test_loader = DataLoader(dataset, batch_size=256, num_workers=5)
@@ -61,7 +65,8 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(f'{saved_path}/{args.name_model}_seed{args.seed}_best_model_fold{best_fold}.pth'))
 
         if (args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
-            or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxiliary_branch):
+            or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' 
+            or args.name_model == 'MSVT_SE_SE_Net' or args.name_model == 'SincMSVTNet') and (args.auxiliary_branch):
             criterion = JointCrossEntropyLoss()
         else:
             criterion = nn.CrossEntropyLoss()

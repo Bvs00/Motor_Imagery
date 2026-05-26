@@ -23,10 +23,10 @@ def plot_data(data_embedded, y, colors, markers, path, name_file, title):
     plt.figure(figsize=(9, 7), dpi=300)
     
     plt.rcParams.update({
-    "font.size": 14,
+    "font.size": 18,
     "axes.titlesize": 16,
     "axes.labelsize": 15,
-    "legend.fontsize": 13
+    "legend.fontsize": 18
     })
     
     classes = np.unique(y)
@@ -70,7 +70,7 @@ def plot_data(data_embedded, y, colors, markers, path, name_file, title):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_set", type=str,
-                        default="/mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_full.npz", help="Path to train set file")
+                        default="/cache/sbove/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/test_2b_full.npz", help="Path to train set file")
     parser.add_argument("--name_model", type=str, default='MSVTNet', help="Name of model that use", choices=available_network)
     parser.add_argument('--saved_path', type=str, default='Results_Black/Results_Z_Score_unique/Results_SegRec/Results_Cross/Results_MSVTNet_Full_NoBandpass')
     parser.add_argument('--saved_path_plot', type=str, default='Visualization_TSNE')
@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--feature_maps', nargs='+', type=int, default=[9, 9, 9, 9])
     parser.add_argument('--p1', type=int, default=8)
     parser.add_argument('--p2', type=int, default=7)
+    parser.add_argument('--perplexity', type=int, default=30)
     args = parser.parse_args()
     
     args.auxiliary_branch = True if args.auxiliary_branch == 'True' else False
@@ -106,7 +107,8 @@ if __name__ == '__main__':
         data = (data - min_)/(max_ - min_)
     
     data_reshape = torch.reshape(data, [data.shape[0], -1]).numpy()
-    data_embedded = TSNE(n_components=2, random_state=42, perplexity=5).fit_transform(data_reshape)
+    data_reshape_pca = PCA(n_components=50).fit_transform(data_reshape)
+    data_embedded = TSNE(n_components=2, random_state=42, perplexity=args.perplexity).fit_transform(data_reshape_pca)
     y_subjects = labels_subjects.numpy()
     y_tasks = labels.numpy()
     plot_data(data_embedded, y=y_subjects, colors=colors, markers=markers, path=args.dataset, name_file='Original_Data_Subjects', \
@@ -221,7 +223,8 @@ if __name__ == '__main__':
     
     
     latent_representation = latent_representation.cpu().numpy()
-    latent_representation_embedded = TSNE(n_components=2, random_state=42, perplexity=5).fit_transform(latent_representation)
+    latent_representation_pca = PCA(n_components=50).fit_transform(latent_representation)
+    latent_representation_embedded = TSNE(n_components=2, random_state=42, perplexity=args.perplexity).fit_transform(latent_representation_pca)
     plot_data(latent_representation_embedded, y=y_subjects, colors=colors, markers=markers, path=args.dataset, \
         name_file=f'{args.name_model}_Data_Subjects', title='2D Representation of Latent Representation of Original Data grouped for Subjects')
     plot_data(latent_representation_embedded, y=y_tasks, colors=colors, markers=markers, path=args.dataset, \

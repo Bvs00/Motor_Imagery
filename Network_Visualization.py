@@ -418,11 +418,66 @@ class MSVT_SE_SE_Net(nn.Module):
             return [x, bx, se_weights_branches, se_weights] if return_attention else [x, bx, latent_representation]
         else:
             return [x, se_weights_branches, se_weights] if return_attention else [x, latent_representation]
+
+
+##################################### CTNET ###########################################
+from CTNet import BranchEEGNetTransformer, PositioinalEncoding_CTNet, TransformerEncoder_CTNet, ClassificationHead_CTNet
+import math
+class CTNet(nn.Module):
+    def __init__(self, heads=2, 
+                 emb_size=16,
+                 depth=6, 
+                 database_type='A', 
+                 eeg1_f1 = 8,
+                 eeg1_kernel_size = 63,
+                 eeg1_D = 2,
+                 eeg1_pooling_size1 = 8,
+                 eeg1_pooling_size2 = 8,
+                 eeg1_dropout_rate = 0.25,
+                 flatten_eeg1 = 240,
+                 num_classes = 2,
+                 channels = 3,
+                 model_name_prefix="CTNet",
+                 **kwargs):
+        super().__init__()
+        self.model_name_prefix = model_name_prefix
+        self.number_class, self.number_channel = num_classes, channels
+        self.emb_size = emb_size
+        self.flatten_eeg1 = flatten_eeg1
+        self.flatten = nn.Flatten()
+        print('self.number_channel', self.number_channel)
+        self.cnn = BranchEEGNetTransformer(heads, depth, emb_size, number_channel=self.number_channel,
+                                              f1 = eeg1_f1,
+                                              kernel_size = eeg1_kernel_size,
+                                              D = eeg1_D,
+                                              pooling_size1 = eeg1_pooling_size1,
+                                              pooling_size2 = eeg1_pooling_size2,
+                                              dropout_rate = eeg1_dropout_rate,
+                                              )
+        self.position = PositioinalEncoding_CTNet(emb_size, dropout=0.1)
+        self.trans = TransformerEncoder_CTNet(heads, depth, emb_size)
+
+        self.flatten = nn.Flatten()
+        self.classification = ClassificationHead_CTNet(self.flatten_eeg1 , self.number_class) # FLATTEN_EEGNet + FLATTEN_cnn_module
+    
+    def forward(self, x):
+        cnn = self.cnn(x)
+
+        #  positional embedding
+        cnn = cnn * math.sqrt(self.emb_size)
+        cnn = self.position(cnn)
         
+        trans = self.trans(cnn)
+        # residual connect
+        features = cnn+trans
+        
+        out = self.classification(self.flatten(features))
+        return out, None, self.flatten(features)
         
 network_factory_methods = {
     'MSVTNet': MSVTNet,
     'MSVTSENet': MSVTSENet,
     'MSVT_SE_Net': MSVT_SE_Net,
-    'MSVT_SE_SE_Net': MSVT_SE_SE_Net
+    'MSVT_SE_SE_Net': MSVT_SE_SE_Net,
+    'CTNet': CTNet
 }
