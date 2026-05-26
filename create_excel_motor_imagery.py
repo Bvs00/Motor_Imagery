@@ -13,14 +13,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     path = args.path
-    f1_score_seeds = {'Patient1':[], 'Patient2':[], 'Patient3':[], 'Patient4':[], 'Patient5':[], 'Patient6':[],
-                                    'Patient7':[], 'Patient8':[], 'Patient9':[], 'Average':[]}
-    dataframe = pd.DataFrame(columns=['Seed', 'Patient1', 'Patient2', 'Patient3', 'Patient4', 'Patient5', 'Patient6',
-                                    'Patient7', 'Patient8', 'Patient9', 'Average'])
-    dataframe_balanced = pd.DataFrame(columns=['Seed', 'Patient1', 'Patient2', 'Patient3', 'Patient4', 'Patient5', 'Patient6',
-                                    'Patient7', 'Patient8', 'Patient9', 'Average'])
+    if 'OpenBMI' in path:
+        num_patient = 54
+    else:
+        num_patient = 9
+    f1_score_seeds = {}
+    for i in range(num_patient):
+        f1_score_seeds[f'Patient{i+1}'] = []
+    f1_score_seeds['Average'] = []
+    
+    columns = ['Seed'] + [f'Patient{i+1}' for i in range(num_patient)] + ['Average']
+    # f1_score_seeds = {'Patient1':[], 'Patient2':[], 'Patient3':[], 'Patient4':[], 'Patient5':[], 'Patient6':[],
+    #                                 'Patient7':[], 'Patient8':[], 'Patient9':[], 'Average':[]}
+    dataframe = pd.DataFrame(columns=columns)
+    dataframe_balanced = pd.DataFrame(columns=columns)
     dataframe_kappa = pd.DataFrame(columns=['Seed', 'Patient1', 'Patient2', 'Patient3', 'Patient4', 'Patient5', 'Patient6',
                                     'Patient7', 'Patient8', 'Patient9', 'Average'])
+    
     list_seeds = [42, 71, 101, 113, 127, 131, 139, 149, 157, 163, 173, 181, 322, 521, 
                   402, 701, 1001, 1013, 1207, 1031, 1339, 1449, 1527, 1613, 1743, 
                   1841, 3222, 5421] if args.full_seeds else [42, 71, 101, 113, 127, 131, 
@@ -57,8 +66,8 @@ if __name__ == "__main__":
         dataframe_balanced['Seed'] = dataframe_balanced['Seed'].astype('int32')
         dataframe_kappa['Seed'] = dataframe_kappa['Seed'].astype('int32')
     
-    tmp_acc_list, tmp_bal_acc_list, tmp_kappa_list = [], [], []
-    for i in range(9):
+    tmp_acc_list, tmp_bal_acc_list, tmp_kappa_list = [], []
+    for i in range(num_patient):
         key = f'Patient{i+1}'
         f1_score_seeds[key] = [round(x / len(list_seeds), 2) for x in f1_score_seeds[key]]
         tmp_acc_list.append(round(dataframe[key].mean(), 2))
