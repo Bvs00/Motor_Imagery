@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] \
+if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] || [ -z "$BATCH_SIZE" ] \
 || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ] || [ -z "$DATASET" ] || [ -z "$AUX" ]; then
     echo "Errore: Devi specificare NET, PRIME, AUG, SAVED_PATH, NORM, BANDPASS, PARADIGM!"
     echo "Utilizzo: NET=<valore> PRIME=<valore> AUG=<valore> ./script.sh"
@@ -17,6 +17,7 @@ echo "$PARADIGM"
 echo "$CLASSES"
 echo "$DATASET"
 echo "$AUX"
+echo "$BATCH_SIZE"
 
 if [ "$PRIME" == "1" ]; then
   primes=(42 71 101 113 127 131 139 149 157 163 173 181 322 521)
@@ -43,6 +44,7 @@ paradigm="$PARADIGM"
 classes="$CLASSES"
 dataset="$DATASET"
 aux="$AUX"
+batch_size="$BATCH_SIZE"
 
 # /home/inbit/Scrivania/Datasets/2B/
 # /mnt/datasets/eeg/Dataset_BCI_2b/Signals_BCI_2classes/
@@ -50,9 +52,9 @@ aux="$AUX"
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
-          --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
+          --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
           --train_set "/cache/sbove/datasets/eeg/Dataset_BCI_${dataset}/Signals_BCI_${classes}classes/train_${dataset}_$bandpass.npz" \
-          --patience 150 --batch_size 72 --auxiliary_branch "$aux"
+          --patience 50 --batch_size $batch_size --auxiliary_branch "$aux" --name_cluster "172.16.174.236"
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
           --test_set "/cache/sbove/datasets/eeg/Dataset_BCI_${dataset}/Signals_BCI_${classes}classes/test_${dataset}_$bandpass.npz" \
           --seed "$seed" --auxiliary_branch "$aux"

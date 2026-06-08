@@ -29,10 +29,7 @@ def _train(data, labels, saved_path, fold_performance):
     if args.paradigm=='LOSO':
         # Normalize Full Dataset
         mean, std, min_, max_ = normalization_factory_methods[args.normalization](torch.cat(data))
-        if 'Itself' not in args.normalization:
-            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
-        else:
-            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=None, std=None, min_=None, max_=None)
+        saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
         # fare un fold per ogni soggetto
         
         for elem in range(len(data)):
@@ -53,11 +50,7 @@ def _train(data, labels, saved_path, fold_performance):
     
     # Normalize Full Dataset
         mean, std, min_, max_ = normalization_factory_methods[args.normalization](data)
-        if 'Itself' not in args.normalization:
-            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
-        else:
-            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=None, std=None, min_=None, max_=None)
-        
+        saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
         dataset = TensorDataset(data, labels)
         kfold = KFold(n_splits=args.fold, shuffle=True, random_state=42)
 
@@ -95,8 +88,9 @@ def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, va
     model.to(args.device)
     print(f"Fold {fold + 1}/{tot_folds}")
     
-    train_tensor, val_tensor = normalize_subset(train_subset, val_subset, normalization_factory_methods[args.normalization])
-    train_loader, val_loader = create_data_loader(train_tensor, val_tensor, args.batch_size, args.num_workers)
+    if args.normalization != 'None':
+        train_subset, val_subset = normalize_subset(train_subset, val_subset, normalization_factory_methods[args.normalization])
+    train_loader, val_loader = create_data_loader(train_subset, val_subset, args.batch_size, args.num_workers)
 
     y_train = torch.stack([train_subset[i][1] for i in range(len(train_subset))]).numpy()
     class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
@@ -132,6 +126,7 @@ if __name__ == '__main__':
     parser.add_argument('--auxiliary_branch', type=str, default='True')
     parser.add_argument('-checkpoint_flag', action='store_true', default=True)
     parser.add_argument('-dm', action='store_true', default=False)
+    parser.add_argument('--name_cluster', type=str, default="Inbit")
     args = parser.parse_args()
     
     print(f"DEVICE: {args.device}")
@@ -141,8 +136,7 @@ if __name__ == '__main__':
     args.auxiliary_branch = True if args.auxiliary_branch == 'True' else False
     print(f'Auxiliary Branch condition: {args.auxiliary_branch}')
     
-    if not os.path.exists(args.saved_path):
-        os.makedirs(args.saved_path)
+    os.makedirs(args.saved_path, exist_ok=True)
     
     # create tensors
     data_train_tensors, labels_train_tensors = create_tensors(args.train_set)

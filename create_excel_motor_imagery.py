@@ -27,8 +27,7 @@ if __name__ == "__main__":
     #                                 'Patient7':[], 'Patient8':[], 'Patient9':[], 'Average':[]}
     dataframe = pd.DataFrame(columns=columns)
     dataframe_balanced = pd.DataFrame(columns=columns)
-    dataframe_kappa = pd.DataFrame(columns=['Seed', 'Patient1', 'Patient2', 'Patient3', 'Patient4', 'Patient5', 'Patient6',
-                                    'Patient7', 'Patient8', 'Patient9', 'Average'])
+    dataframe_kappa = pd.DataFrame(columns=columns)
     
     list_seeds = [42, 71, 101, 113, 127, 131, 139, 149, 157, 163, 173, 181, 322, 521, 
                   402, 701, 1001, 1013, 1207, 1031, 1339, 1449, 1527, 1613, 1743, 
@@ -41,18 +40,18 @@ if __name__ == "__main__":
 
         with open(file_path, 'r') as f:
             data = json.load(f)
-            accuracies = [round(data[i]['Accuracy'], 4)*100 for i in range(9)]
-            balanced_accuracies = [round(data[i]['Balanced Accuracy'], 4)*100 for i in range(9)]
-            kappa = [round(data[i]['Kappa'], 3) for i in range(9)]
+            accuracies = [round(data[i]['Accuracy'], 4)*100 for i in range(num_patient)]
+            balanced_accuracies = [round(data[i]['Balanced Accuracy'], 4)*100 for i in range(num_patient)]
+            kappa = [round(data[i]['Kappa'], 3) for i in range(num_patient)]
             
-            for i in range(9):
+            for i in range(num_patient):
                 key = f'Patient{i+1}'
                 f1_val_arr = [round(x, 4)*100 for x in data[i]['F1 Score']]
                 if f1_score_seeds[key]:
                     f1_score_seeds[key] = [a+b for a,b in zip(f1_score_seeds[key], f1_val_arr)]
                 else:
                     f1_score_seeds[key] = f1_val_arr
-            f1_val_arr = [round(x, 4)*100 for x in data[9]['Average']['F1 Score']]
+            f1_val_arr = [round(x, 4)*100 for x in data[num_patient]['Average']['F1 Score']]
             if f1_score_seeds['Average']:
                 f1_score_seeds['Average'] = [a+b for a,b in zip(f1_score_seeds['Average'], f1_val_arr)]
             else:

@@ -43,14 +43,13 @@ if __name__ == '__main__':
         mean, std, min_, max_ = load_normalizations(f'{saved_path}/{args.name_model}')
         
         if mean == None and std == None and min_ == None and max_ == None:
-            max_value_samples = torch.amax(torch.abs(data), dim=(1,2,3), keepdim=True)
-            data = data/(max_value_samples + 1e-8)
+            pass
         else:
             if mean != None:
                 data = (data - mean)/std
             else:
                 data = (data - min_)/(max_ - min_)
-
+        
         dataset = TensorDataset(data, labels)
         test_loader = DataLoader(dataset, batch_size=256, num_workers=5)
 

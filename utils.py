@@ -174,29 +174,23 @@ def normalize_subset(train_subset, val_subset, normalization_function):
     train_data, train_labels = data_labels_from_subset(train_subset)
     val_data, val_labels = data_labels_from_subset(val_subset)
     
-    if normalization_function == normalization_itself_max_abs:
-        _,_,_,max_train = normalization_function(train_data)
-        _,_,_,max_val = normalization_function(val_data)
-        train_data = train_data/(max_train + 1e-8)
-        val_data = val_data/(max_val + 1e-8)
+    mean, std, min_, max_ = normalization_function(train_data)
+    
+    if mean != None:
+        train_data = (train_data - mean) / std
+        val_data = (val_data - mean) / std
     else:
-        mean, std, min_, max_ = normalization_function(train_data)
-        
-        if mean != None:
-            train_data = (train_data - mean) / std
-            val_data = (val_data - mean) / std
-        else:
-            train_data = (train_data - min_)/(max_-min_)
-            val_data = (val_data - min_)/(max_-min_)
+        train_data = (train_data - min_)/(max_-min_)
+        val_data = (val_data - min_)/(max_-min_)
 
     train_tensor = TensorDataset(train_data, train_labels)
     val_tensor = TensorDataset(val_data, val_labels)
 
     return train_tensor, val_tensor
 
-def normalization_itself_max_abs(data):
-    max_abs = torch.amax(torch.abs(data), dim=(1,2,3), keepdim=True)
-    return None, None, None, max_abs
+def normalization_none(data):
+    return None, None, None, None
+    
 
 normalization_factory_methods = {
     'Z_Score_channels': normalization_z_score_channels,
@@ -205,7 +199,7 @@ normalization_factory_methods = {
     'Min_Max_unique': normalization_min_max_unique,
     'Percentile_channels': normalization_percentile_channels,
     'Percentile_unique': normalization_percentile_unique,
-    'Itself_Max_Abs': normalization_itself_max_abs
+    'None': normalization_none
 }
 
 available_normalization = [
@@ -215,7 +209,6 @@ available_normalization = [
     'Min_Max_unique',
     'Percentile_channels',
     'Percentile_unique',
-    'Itself_Max_Abs',
     'None'
 ]
 
