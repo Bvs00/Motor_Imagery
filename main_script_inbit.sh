@@ -29,7 +29,7 @@ elif [ "$PRIME" == "4" ]; then
 elif [ "$PRIME" == "5" ]; then
   primes=(149 157 163 173 181 322 521)
   elif [ "$PRIME" == "6" ]; then
-  primes=(131)
+  primes=(42)
 fi
 
 
@@ -50,7 +50,7 @@ aux="$AUX"
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   python -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
-          --augmentation "$aug" --num_workers 5 --normalization "$normalization" --paradigm "$paradigm" \
+          --augmentation "$aug" --num_workers 10 --normalization "$normalization" --paradigm "$paradigm" \
           --train_set "/home/inbit/Scrivania/Datasets/${dataset}/Signals_BCI_${classes}classes/train_${dataset}_$bandpass.npz" \
           --patience 150 --batch_size 72 --auxiliary_branch "$aux"
   python -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \

@@ -48,12 +48,12 @@ if __name__ == "__main__":
 
             for i in range(num_patient):
                 key = f'Patient{i+1}'
-                f1_val_arr = [round(x, 3) for x in data[i]['F1 Score']]
+                f1_val_arr = [round(x, 4)*100 for x in data[i]['F1 Score']]
                 if f1_score_seeds[key]:
                     f1_score_seeds[key] = [a+b for a,b in zip(f1_score_seeds[key], f1_val_arr)]
                 else:
                     f1_score_seeds[key] = f1_val_arr
-            f1_val_arr = [round(x, 3) for x in data[num_patient]['Average']['F1 Score']]
+            f1_val_arr = [round(x, 4)*100 for x in data[9]['Average']['F1 Score']]
             if f1_score_seeds['Average']:
                 f1_score_seeds['Average'] = [a+b for a,b in zip(f1_score_seeds['Average'], f1_val_arr)]
             else:
@@ -70,12 +70,12 @@ if __name__ == "__main__":
     tmp_acc_list, tmp_bal_acc_list, tmp_kappa_list = [], [], []
     for i in range(num_patient):
         key = f'Patient{i+1}'
-        f1_score_seeds[key] = [round(x / len(list_seeds), 3) for x in f1_score_seeds[key]]
-        tmp_acc_list.append(round(dataframe[key].mean(), 3))
-        tmp_bal_acc_list.append(round(dataframe_balanced[key].mean(), 3))
-        tmp_kappa_list.append(round(dataframe_kappa[key].mean(), 3))
+        f1_score_seeds[key] = [round(x / len(list_seeds), 2) for x in f1_score_seeds[key]]
+        tmp_acc_list.append(round(dataframe[key].mean(), 2))
+        tmp_bal_acc_list.append(round(dataframe_balanced[key].mean(), 2))
+        tmp_kappa_list.append(round(dataframe_kappa[key].mean(), 2))
     
-    f1_score_seeds['Average'] = [round(x / len(list_seeds), 3) for x in f1_score_seeds['Average']]
+    f1_score_seeds['Average'] = [round(x / len(list_seeds), 2) for x in f1_score_seeds['Average']]
     dataframe.loc[len(list_seeds)] = ['Average'] + tmp_acc_list + [np.mean(tmp_acc_list)]
     dataframe_balanced.loc[len(list_seeds)] = ['Average'] + tmp_bal_acc_list + [np.mean(tmp_bal_acc_list)]
     dataframe_kappa.loc[len(list_seeds)] = ['Average'] + tmp_kappa_list + [np.mean(tmp_kappa_list)]

@@ -29,8 +29,10 @@ def _train(data, labels, saved_path, fold_performance):
     if args.paradigm=='LOSO':
         # Normalize Full Dataset
         mean, std, min_, max_ = normalization_factory_methods[args.normalization](torch.cat(data))
-
-        saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
+        if 'Itself' not in args.normalization:
+            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
+        else:
+            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=None, std=None, min_=None, max_=None)
         # fare un fold per ogni soggetto
         
         for elem in range(len(data)):
@@ -51,8 +53,10 @@ def _train(data, labels, saved_path, fold_performance):
     
     # Normalize Full Dataset
         mean, std, min_, max_ = normalization_factory_methods[args.normalization](data)
-        
-        saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
+        if 'Itself' not in args.normalization:
+            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=mean, std=std, min_=min_, max_=max_)
+        else:
+            saved_normalizations(saved_path=f'{saved_path}/{args.name_model}', mean=None, std=None, min_=None, max_=None)
         
         dataset = TensorDataset(data, labels)
         kfold = KFold(n_splits=args.fold, shuffle=True, random_state=42)
@@ -98,7 +102,8 @@ def _create_train_model_subsets(saved_path, labels, data, fold, train_subset, va
     class_weights = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.unique(y_train), y=y_train), dtype=torch.float32).to(args.device)
     print(f"Class weights for this fold: {class_weights}")
     if (args.name_model == 'MSVTNet' or args.name_model == 'MSVTSENet' or args.name_model == 'MSSEVTNet' or args.name_model == 'MSSEVTSENet' \
-        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' or args.name_model == 'MSVT_SE_SE_Net') and (args.auxiliary_branch):
+        or args.name_model == 'MSVTSE_ChEmphasis_Net' or args.name_model == 'MSVT_SE_Net' 
+        or args.name_model == 'MSVT_SE_SE_Net' or args.name_model == 'SincMSVTNet') and (args.auxiliary_branch):
         criterion = JointCrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss(weight=class_weights)

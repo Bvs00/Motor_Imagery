@@ -14,6 +14,7 @@ from EEGConformer import EEGConformer, EEGConformerPositional, EEGConformer_Wout
 from PatchEmbeddingNet import PatchEmbeddingNet
 from CTNet import CTNet, CSETNet
 from MSVTNet import MSVTNet, MSVTSENet, MSSEVTNet, MSSEVTSENet, MSVTSE_ChEmphasis_Net, MSVT_SE_Net, MSVT_SE_SE_Net
+from SincMSVTNet import SincMSVTNet, SMANet
 
 import seaborn as sns
 from data_augmentation import chr_augmentation, reverse_channels, segmentation_reconstruction, reverse_channels_segmentation_reconstruction
@@ -39,7 +40,9 @@ available_network = [
     'MSSEVTSENet', 
     'MSVTSE_ChEmphasis_Net', 
     'MSVT_SE_Net',
-    'MSVT_SE_SE_Net'
+    'MSVT_SE_SE_Net',
+    'SincMSVTNet',
+    'SMANet'
 ]
 
 network_factory_methods = {
@@ -63,6 +66,8 @@ network_factory_methods = {
     'MSVTSE_ChEmphasis_Net': MSVTSE_ChEmphasis_Net, 
     'MSVT_SE_Net': MSVT_SE_Net,
     'MSVT_SE_SE_Net': MSVT_SE_SE_Net,
+    'SincMSVTNet': SincMSVTNet,
+    'SMANet': SMANet
 }
 
 available_augmentation = [
@@ -168,20 +173,30 @@ def data_labels_from_subset(subset):
 def normalize_subset(train_subset, val_subset, normalization_function):
     train_data, train_labels = data_labels_from_subset(train_subset)
     val_data, val_labels = data_labels_from_subset(val_subset)
-
-    mean, std, min_, max_ = normalization_function(train_data)
     
-    if mean != None:
-        train_data = (train_data - mean) / std
-        val_data = (val_data - mean) / std
+    if normalization_function == normalization_itself_max_abs:
+        _,_,_,max_train = normalization_function(train_data)
+        _,_,_,max_val = normalization_function(val_data)
+        train_data = train_data/(max_train + 1e-8)
+        val_data = val_data/(max_val + 1e-8)
     else:
-        train_data = (train_data - min_)/(max_-min_)
-        val_data = (val_data - min_)/(max_-min_)
+        mean, std, min_, max_ = normalization_function(train_data)
+        
+        if mean != None:
+            train_data = (train_data - mean) / std
+            val_data = (val_data - mean) / std
+        else:
+            train_data = (train_data - min_)/(max_-min_)
+            val_data = (val_data - min_)/(max_-min_)
 
     train_tensor = TensorDataset(train_data, train_labels)
     val_tensor = TensorDataset(val_data, val_labels)
 
     return train_tensor, val_tensor
+
+def normalization_itself_max_abs(data):
+    max_abs = torch.amax(torch.abs(data), dim=(1,2,3), keepdim=True)
+    return None, None, None, max_abs
 
 normalization_factory_methods = {
     'Z_Score_channels': normalization_z_score_channels,
@@ -189,7 +204,8 @@ normalization_factory_methods = {
     'Min_Max_channels': normalization_min_max_channels,
     'Min_Max_unique': normalization_min_max_unique,
     'Percentile_channels': normalization_percentile_channels,
-    'Percentile_unique': normalization_percentile_unique
+    'Percentile_unique': normalization_percentile_unique,
+    'Itself_Max_Abs': normalization_itself_max_abs
 }
 
 available_normalization = [
@@ -199,6 +215,7 @@ available_normalization = [
     'Min_Max_unique',
     'Percentile_channels',
     'Percentile_unique',
+    'Itself_Max_Abs',
     'None'
 ]
 
@@ -311,9 +328,9 @@ def plot_training_complete(fold_performance, name, folds):
 ########################################## CREATE DATALOADER #############################################
 def create_data_loader(train_tensor, val_tensor, batch_size, num_workers):
     train_loader = DataLoader(train_tensor, batch_size=batch_size, shuffle=True, num_workers=num_workers,
-                              prefetch_factor=3, persistent_workers=True)
+                              prefetch_factor=4, persistent_workers=True)
     val_loader = DataLoader(val_tensor, batch_size=batch_size, shuffle=False, num_workers=num_workers,
-                            prefetch_factor=3, persistent_workers=True)
+                            prefetch_factor=4, persistent_workers=True)
     return train_loader, val_loader
 
 #################################### FIND BEST FOLD ############################################
@@ -475,9 +492,9 @@ def train_model(model, fold_performance, train_loader, val_loader, fold, criteri
         else:
             early_stopping_counter += 1
 
-        print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
-             f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
-             f"Early Stopping Counter: {early_stopping_counter}/{patience}")
+        # print(f"Epoch {epoch+1}/{epochs}, Training Loss: {running_loss/len(train_loader):.4f}, Validation Loss: {val_loss:.4f}, "
+        #      f"Validation F1 Score: {val_f1}, Validation Accuracy: {val_accuracy:.4f}, "
+        #      f"Early Stopping Counter: {early_stopping_counter}/{patience}")
         
         checkpoint = {
             'epoch': epoch+1,
