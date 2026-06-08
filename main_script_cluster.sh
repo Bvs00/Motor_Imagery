@@ -5,14 +5,16 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --job-name=MSVTNet_openbmi_4
-#SBATCH --output=MSVTNet_openbmi_4.log
-#SBATCH --dependency=498618
+#SBATCH --job-name=MSVTNet_2a_3channels_2
+#SBATCH --output=MSVTNet_2a_3channels_2.log
 
 
+##### ric_biomore_369
 ###### --nodelist=gnode03
 export TORCH_DEVICE=cuda
 export PYTHON=/home/bvosmn000/.conda/envs/ICareMeEnv/bin/python
+
+num_workers=32
 
 if [ -z "$NET" ] || [ -z "$PRIME" ] || [ -z "$AUG" ] || [ -z "$SAVED_PATH" ] || [ -z "$NORM" ] \
     || [ -z "$BANDPASS" ] || [ -z "$PARADIGM" ] || [ -z "$CLASSES" ] || [ -z "$DATASET" ] || [ -z "$AUX" ] ; then
@@ -47,6 +49,14 @@ elif [ "$PRIME" == "6" ]; then
   primes=(127 131 139)
 elif [ "$PRIME" == "7" ]; then
   primes=(181 322 521)
+elif [ "$PRIME" == "8" ]; then
+  primes=(113)
+elif [ "$PRIME" == "9" ]; then
+  primes=(139)
+elif [ "$PRIME" == "10" ]; then
+  primes=(173)
+elif [ "$PRIME" == "11" ]; then
+  primes=(521)
 fi
 
 
@@ -64,12 +74,12 @@ aux="$AUX"
 for seed in "${primes[@]}"; do
   echo "Train seed: $seed"
   $PYTHON -u train_motor_imagery.py --seed "$seed" --name_model "$network" --saved_path "$saved_path" --lr 0.001 \
-          --augmentation "$aug" --num_workers 32 --normalization "$normalization" --paradigm "$paradigm" \
+          --augmentation "$aug" --num_workers $num_workers --normalization "$normalization" --paradigm "$paradigm" \
           --train_set "/mnt/beegfs/sbove/${dataset}/${classes}_classes/train_${dataset}_$bandpass.npz" --device "$TORCH_DEVICE"\
           --patience 100 --batch_size 72 --auxiliary_branch "$aux"
   $PYTHON -u test_motor_imagery.py --name_model "$network" --saved_path "$saved_path" --paradigm "$paradigm" \
           --test_set "/mnt/beegfs/sbove/${dataset}/${classes}_classes/test_${dataset}_$bandpass.npz" --device "$TORCH_DEVICE"\
-          --seed "$seed" --auxiliary_branch "$aux"
+          --seed "$seed" --auxiliary_branch "$aux" --num_workers $num_workers
 done
 
 $PYTHON create_excel_motor_imagery.py --network "$network" --path "$saved_path"

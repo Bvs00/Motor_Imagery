@@ -15,6 +15,8 @@ if __name__ == "__main__":
     path = args.path
     if 'OpenBMI' in path:
         num_patient = 54
+    elif 'PhysionetMI' in path:
+        num_patient = 106
     else:
         num_patient = 9
     f1_score_seeds = {}
@@ -40,10 +42,10 @@ if __name__ == "__main__":
 
         with open(file_path, 'r') as f:
             data = json.load(f)
-            accuracies = [round(data[i]['Accuracy'], 4)*100 for i in range(num_patient)]
-            balanced_accuracies = [round(data[i]['Balanced Accuracy'], 4)*100 for i in range(num_patient)]
+            accuracies = [round(data[i]['Accuracy'], 3) for i in range(num_patient)]
+            balanced_accuracies = [round(data[i]['Balanced Accuracy'], 3)*100 for i in range(num_patient)]
             kappa = [round(data[i]['Kappa'], 3) for i in range(num_patient)]
-            
+
             for i in range(num_patient):
                 key = f'Patient{i+1}'
                 f1_val_arr = [round(x, 4)*100 for x in data[i]['F1 Score']]
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         dataframe_balanced['Seed'] = dataframe_balanced['Seed'].astype('int32')
         dataframe_kappa['Seed'] = dataframe_kappa['Seed'].astype('int32')
     
-    tmp_acc_list, tmp_bal_acc_list, tmp_kappa_list = [], []
+    tmp_acc_list, tmp_bal_acc_list, tmp_kappa_list = [], [], []
     for i in range(num_patient):
         key = f'Patient{i+1}'
         f1_score_seeds[key] = [round(x / len(list_seeds), 2) for x in f1_score_seeds[key]]
