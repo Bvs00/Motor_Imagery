@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --gpus-per-task=1
 #SBATCH --time=07:00:00
-#SBATCH --job-name=MSVTNet_2a_3channels_2
-#SBATCH --output=MSVTNet_2a_3channels_2.log
+#SBATCH --job-name=CTNet_phy_3channels_2
+#SBATCH --output=CTNet_phy_3channels_2.log
 
 
 ##### ric_biomore_369
